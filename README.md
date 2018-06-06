@@ -1,7 +1,3 @@
-# blueshift-demo-strategies
+## Blueshift Demo Strategies
 
-<div style="text-align:center">
-<a href="https://quantra-blueshift.quantinsti.com/">
-  <img src="https://quantra-blueshift.quantinsti.com/static/img/landing/blueshift-logo.png">
-</a>
-</div>
+[<img src="https://quantra-blueshift.quantinsti.com/static/img/landing/blueshift-logo.png">](https://quantra-blueshift.quantinsti.com/)
