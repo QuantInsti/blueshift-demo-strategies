@@ -1,6 +1,7 @@
 ### Blueshift Demo Strategies
-
-[<img src="https://quantra-blueshift.quantinsti.com/static/img/landing/blueshift-logo.png">](https://quantra-blueshift.quantinsti.com/)
+<p align="center">
+  [<img align="center" width="200" src="https://quantra-blueshift.quantinsti.com/static/img/landing/blueshift-logo.png">](https://quantra-blueshift.quantinsti.com/)
+</p>
 ----
 [Blueshift](https://quantra-blueshift.quantinsti.com/) is a systematic trading development platform with built-in market data covernig multiple markets and asset classes, powered by [Zipline](http://www.zipline.io/)
 
