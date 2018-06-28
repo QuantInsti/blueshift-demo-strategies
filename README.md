@@ -2,7 +2,7 @@
   <a href="https://quantra-blueshift.quantinsti.com/"><img align="center" src="https://quantra-blueshift.quantinsti.com/static/img/landing/blueshift-logo.png"></a>
 </p>
 
-### Blueshift Demo Strategies
+<h3 align="center">Blueshift Demo Strategies</h3>
 
 <br>
 
