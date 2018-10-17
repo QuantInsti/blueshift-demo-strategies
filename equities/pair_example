@@ -1,0 +1,176 @@
+'''
+    Title: Pairs Trading Startegy
+    Description: This is a sample Pairs Trading strategy
+    Style tags: Mean-reversion, Stat-Arb
+    Asset class: Equities, Futures, ETFs, Currencies and Commodities
+    Dataset: NSE Daily or NSE Minute
+'''
+# Import the libraries which are required
+# Data manipulation
+import pandas as pd
+import numpy as np
+
+# Linear regression and cointegration test
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import coint
+
+# Zipline
+from zipline.api import(    symbol,
+                            get_datetime,
+                            order_target_percent,
+                            schedule_function,
+                            date_rules,
+                            time_rules,
+                            attach_pipeline,
+                            pipeline_output,
+                            set_commission,
+                            set_slippage,
+                            get_open_orders,
+                            cancel_order
+                       )
+from zipline.errors import HistoryWindowStartsBeforeData
+
+'''
+   A function to define things to do at the start of the strategy
+'''
+def initialize(context):
+    # The context variables can be accessed by other methods in the strategy
+    '''
+    The pair tickers are defined in the columns x and y of the DataFrame context.stocks_pair
+    and the signal column is initialized to 0
+    '''
+    context.stocks_pair = pd.DataFrame(
+                                        {
+                                            'x': [symbol('AMBUJACEM')],
+                                            'y': [symbol('ACC')],
+                                            'signal': 0,
+                                            'leverage':5
+                                        }
+                                    )
+
+    # Trade entry and exit when the z_score is +/- entry_z_score and exit_z_score respectively
+    context.entry_z_score = 2.0
+    context.exit_z_score = 0.5
+
+    # Lookback window
+    context.lookback = 200
+
+    # used for zscore calculation
+    context.z_window = 100     
+
+    # Call strategy function on the first trading day of each week at 10 AM
+    schedule_function(pair_trading_strategy,
+                     date_rules.week_start(),
+                     time_rules.market_open(minutes=30))
+
+'''
+   A function to define Pairs Trading strategy logic
+'''
+def pair_trading_strategy(context,data):
+
+
+    try:
+        # Get the historic data for the stocks pair
+        prices = data.history(  assets =
+                           context.stocks_pair.x.append(context.stocks_pair.y).values,
+                           fields = "price",
+                           bar_count = context.lookback,
+                           frequency = "1d"
+                        )
+    except Exception as e:
+        # If the data.history bar_count extends before the date the data is available then return
+        if type(e) is HistoryWindowStartsBeforeData:
+            return
+        else:
+            raise e
+
+    # Take log of the prices
+    prices = np.log(prices)
+
+    # Store the price data in y and x
+    y = prices[context.stocks_pair.y]
+    x = prices[context.stocks_pair.x]
+
+    # Calculate the hedge ratio
+    context.stocks_pair['hedge_ratio'] = hedge_ratio(y, x)
+
+    # Calculate the z_score
+    context.stocks_pair['z_score'] = z_score(y, x,
+                                            context.stocks_pair.hedge_ratio,
+                                            context.z_window)
+    # Compute the trading signal
+    context.stocks_pair['signal'] = trading_signal(
+                                                context.stocks_pair.z_score.values,
+                                                context.entry_z_score,
+                                                context.exit_z_score,
+                                                context.stocks_pair.signal.values)
+
+    # Place the order to trade the pair
+    place_order(context)
+
+'''
+   A function to compute hedge ratio
+'''
+def hedge_ratio(Y, X):
+    # Ordinary least sqauare method to compute linear regression
+    return sm.OLS(Y, X).fit().params[0]
+
+'''
+   A function to compute Z Score
+'''
+def z_score(Y, X, hedge, z_window):
+    # spread = Y - hedge ratio * X
+    spread = Y.values - hedge.values * X.values
+
+    # Compute z_score over the z_window
+    return (spread[-1] - spread[-z_window:].mean()) / spread[-z_window:].std()
+
+'''
+   A function to define trading signal (buy or sell)
+'''
+def trading_signal(z_score, entry_z_score, exit_z_score, previous_signal):
+    '''
+       Trading signal is
+           +1 Buy the spread
+           -1 Sell the spread
+            0 Exit the spread
+       Note: spread = Y - hedge ratio * X
+    '''
+    if z_score > entry_z_score:
+        return -1
+    elif z_score < -entry_z_score:
+        return 1
+    elif z_score < exit_z_score and previous_signal == -1:
+        return 0
+    elif z_score > -exit_z_score and previous_signal == 1:
+        return 0
+    return previous_signal
+
+'''
+   A function to place order
+'''
+def place_order(context):
+
+    # Cancel open order(s) if any before placing new orders  
+    for security, orders in get_open_orders().iteritems():       
+        for oo in orders:  
+             message = 'Canceling order for {amount} shares in {stock}'  
+             message = message.format(amount=oo.amount, stock=security.symbol)  
+             print(message)  
+             cancel_order(oo)       
+           
+    '''
+       Place the order as per signal column.
+           If signal is +1 then Y - hedge ratio * X
+           If signal is -1 then -Y + hedge ratio * X
+       Allocate 50% of capital to Y and 50% capital to X.
+    '''
+    leverage = context.stocks_pair.leverage.iloc[0]
+    stocks_pair = context.stocks_pair
+    order_target_percent(stocks_pair.x.iloc[0],
+                        -0.50 * stocks_pair.signal.iloc[0] *
+                        stocks_pair.hedge_ratio.iloc[0] *
+                        leverage)
+    order_target_percent(stocks_pair.y.iloc[0],
+                        0.50 * stocks_pair.signal.iloc[0] *
+                        leverage)                     
