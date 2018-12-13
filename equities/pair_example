@@ -77,12 +77,9 @@ def pair_trading_strategy(context,data):
                            bar_count = context.lookback,
                            frequency = "1d"
                         )
-    except Exception as e:
+    except HistoryWindowStartsBeforeData:
         # If the data.history bar_count extends before the date the data is available then return
-        if type(e) is HistoryWindowStartsBeforeData:
-            return
-        else:
-            raise e
+        return
 
     # Take log of the prices
     prices = np.log(prices)
