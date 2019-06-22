@@ -72,7 +72,7 @@ pre-programmed trading instructions
 
 Systematic Trading Strategies – For Everyone!
 
-<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/blueshift.png" alt="blueshift" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/blueshift.PNG" alt="blueshift" align="middle">
 
 ## Trading Strategy
 
@@ -99,7 +99,7 @@ potentially long running.
 
 ## The Strategy Spectrum
 
-<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/strategy.png" alt="strategy" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/strategy.PNG" alt="strategy" align="middle">
 
 
 ## The Power of Large Numbers
@@ -146,7 +146,7 @@ The fundamental law of investment management: ``IR ≈ IC . √N. TC``
 
 ## Systematic Strategy Design Cycle
 
-<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/design.png" alt="design" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/design.PNG" alt="design" align="middle">
 
 ### Systematic Strategy Development
 
@@ -182,7 +182,7 @@ The fundamental law of investment management: ``IR ≈ IC . √N. TC``
 
 ### How Blueshift API works
 
-<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/flow.png" alt="work-flow" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/flow.PNG" alt="work-flow" align="middle">
 
 ## Systematic Equities
 
