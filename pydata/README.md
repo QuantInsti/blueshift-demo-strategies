@@ -286,7 +286,7 @@ Go to the example codes.
 
 ### Momentum strategies: Maths
 
-![maths](/resources/maths.png?raw=true)
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/maths.PNG" alt="work-flow" align="middle">
 
 * **XSMOM**: 
     - auto-covariance
