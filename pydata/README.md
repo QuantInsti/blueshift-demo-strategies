@@ -72,7 +72,7 @@ pre-programmed trading instructions
 
 Systematic Trading Strategies – For Everyone!
 
-<img src="resources/blueshift.png" alt="blueshift" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/blueshift.png" alt="blueshift" align="middle">
 
 ## Trading Strategy
 
@@ -99,7 +99,7 @@ potentially long running.
 
 ## The Strategy Spectrum
 
-<img src="resources/strategy.png" alt="strategy" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/strategy.png" alt="strategy" align="middle">
 
 
 ## The Power of Large Numbers
@@ -146,7 +146,7 @@ The fundamental law of investment management: ``IR ≈ IC . √N. TC``
 
 ## Systematic Strategy Design Cycle
 
-<img src="resources/design.png" alt="design" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/design.png" alt="design" align="middle">
 
 ### Systematic Strategy Development
 
@@ -182,13 +182,13 @@ The fundamental law of investment management: ``IR ≈ IC . √N. TC``
 
 ### How Blueshift API works
 
-<img src="resources/flow.png" alt="work-flow" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/flow.png" alt="work-flow" align="middle">
 
 ## Systematic Equities
 
 ### What is Alpha
 
-<img src="resources/alpha.png" alt="alpha" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/alpha.png" alt="alpha" align="middle">
 
 * ΔF is k-variate I(0), ε is n-variate white noise (total instruments n, 
     total factors k). RPs are risk premia (k-variate I(0))
