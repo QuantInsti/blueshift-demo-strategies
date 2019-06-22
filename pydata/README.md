@@ -286,7 +286,7 @@ Go to the example codes.
 
 ### Momentum strategies: Maths
 
-<img src="resources/maths.png" alt="maths" align="middle">
+![maths](resources/maths.png?raw=true)
 
 * **XSMOM**: 
     - auto-covariance
