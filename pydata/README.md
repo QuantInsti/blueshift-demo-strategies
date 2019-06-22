@@ -188,7 +188,7 @@ The fundamental law of investment management: ``IR ≈ IC . √N. TC``
 
 ### What is Alpha
 
-<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/alpha.png" alt="alpha" align="middle">
+<img src="https://github.com/QuantInsti/blueshift-demo-strategies/raw/master/pydata/resources/alpha.PNG" alt="alpha" align="middle">
 
 * ΔF is k-variate I(0), ε is n-variate white noise (total instruments n, 
     total factors k). RPs are risk premia (k-variate I(0))
