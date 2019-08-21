@@ -1,30 +1,21 @@
-'''
+"""
     Title: Classic (Pedersen) time-series momentum (equal weights)
     Description: This strategy uses past returns and go long (short) 
                 the positive (negative) n-percentile
     Style tags: Momentum
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
-'''
-import numpy as np
+"""
+from lib.pipelines.pipelines import average_volume_filter, period_returns
 
-# Zipline
-from zipline.pipeline import Pipeline, CustomFilter, CustomFactor
-from zipline.pipeline.data import EquityPricing
-from zipline.errors import NoFurtherDataError
-from zipline.api import(    symbol,
-                            sid,
-                            get_datetime,
+from zipline.pipeline import Pipeline
+from zipline.api import(
                             order_target_percent,
                             schedule_function,
                             date_rules,
                             time_rules,
                             attach_pipeline,
                             pipeline_output,
-                            set_commission,
-                            set_slippage,
-                            get_open_orders,
-                            cancel_order
                        )
 
 def initialize(context):
@@ -33,15 +24,11 @@ def initialize(context):
     '''
     # The context variables can be accessed by other methods
     context.params = {'lookback':12,
-                      'holding':1,
-                      'percentile':0.05,
+                      'percentile':0.1,
                       'min_volume':1E7
                       }
-
-    # rebalance tracker: required for hp > 1 month
-    context.rebalance_count = 0
     
-    # Call rebalance function on the first trading day of each month at 12 noon
+    # Call rebalance function on the first trading day of each month
     schedule_function(strategy, date_rules.month_start(), 
             time_rules.market_close(minutes=1))
 
@@ -50,62 +37,8 @@ def initialize(context):
             name='strategy_pipeline')
 
 def strategy(context, data):
-    try:
-        pipeline_results = pipeline_output('strategy_pipeline')
-    except NoFurtherDataError:
-        return
-    
-    p = context.params['percentile']
-    momentum = pipeline_results
-    
-    long_candidates = momentum[momentum > 0].dropna().sort_values('momentum')
-    short_candidates = momentum[momentum < 0].dropna().sort_values('momentum')
-    n_long = len(long_candidates)
-    n_short = len(short_candidates)
-    n = int(min(n_long,n_short)*p)
-    if n == 0:
-        print("{}, no trade".format(data.current_dt))
-        return
-    
-    context.long_securities = long_candidates.index[-n:]
-    context.short_securities = short_candidates.index[:n]
-    print(long_candidates[-n:])
-
-    # weighing function
-    weight = 0.25/n
-
-    # square off old positions if required
-    for security in context.portfolio.positions:
-        if security not in context.long_securities and \
-           security not in context.short_securities:
-               order_target_percent(security, 0)
-
-    # Place orders for the new portfolio
-    for security in context.long_securities:
-        order_target_percent(security, weight)
-    for security in context.short_securities:
-        order_target_percent(security, -weight)
-
-
-############################ pipelines #############################
-def average_volume_filter(lookback, amount):
-    class AvgDailyDollarVolumeTraded(CustomFilter):
-        inputs = [EquityPricing.close, EquityPricing.volume]
-        def compute(self,today,assets,out,close_price,volume):
-            dollar_volume = np.mean(close_price * volume, axis=0)
-            high_volume = dollar_volume > amount
-            out[:] = high_volume
-    return AvgDailyDollarVolumeTraded(window_length = lookback)
-
-def period_returns(lookback, volume_filter):
-    class SignalPeriodReturns(CustomFactor):
-        inputs = [EquityPricing.close]
-        def compute(self,today,assets,out,close_price):
-            start_price = close_price[0]
-            end_price = close_price[-1]
-            returns = end_price/start_price - 1
-            out[:] = returns
-    return SignalPeriodReturns(window_length = lookback, mask=volume_filter)
+    generate_signals(context, data)
+    rebalance(context,data)
 
 def make_strategy_pipeline(context):
     pipe = Pipeline()
@@ -118,7 +51,54 @@ def make_strategy_pipeline(context):
     volume_filter = average_volume_filter(lookback, v)
     
     # compute past returns
-    momentum = period_returns(lookback,volume_filter)
+    momentum = period_returns(lookback)
     pipe.add(momentum,'momentum')
+    pipe.set_screen(volume_filter)
 
     return pipe
+
+def generate_signals(context, data):
+    try:
+        pipeline_results = pipeline_output('strategy_pipeline')
+    except:
+        context.long_securities = []
+        context.short_securities = []
+        return
+    
+    p = context.params['percentile']
+    momentum = pipeline_results
+    
+    long_candidates = momentum[momentum > 0].dropna().sort_values('momentum')
+    short_candidates = momentum[momentum < 0].dropna().sort_values('momentum')
+    
+    n_long = len(long_candidates)
+    n_short = len(short_candidates)
+    n = int(min(n_long,n_short)*p)
+
+    if n == 0:
+        print("{}, no signals".format(data.current_dt))
+        context.long_securities = []
+        context.short_securities = []
+    
+    context.long_securities = long_candidates.index[-n:]
+    context.short_securities = short_candidates.index[:n]
+
+def rebalance(context,data):
+    # weighing function
+    n = len(context.long_securities)
+    if n < 1:
+        return
+    
+    weight = 0.5/n
+
+    # square off old positions if any
+    for security in context.portfolio.positions:
+        if security not in context.long_securities and \
+           security not in context.short_securities:
+               order_target_percent(security, 0)
+
+    # Place orders for the new portfolio
+    for security in context.long_securities:
+        order_target_percent(security, weight)
+    for security in context.short_securities:
+        order_target_percent(security, -weight)

@@ -1,10 +1,13 @@
-'''
+"""
     Title: Demo strategy for Algo states
     Description: A demo strategy to explain how to access algo states like portfolio 
         details and account statistics
     Asset class: All
-    Dataset: All (example shows NSE daily data-set)
-'''
+    Dataset: NSE daily data-set
+    
+    Run this example for a few days (say two or three days) with the 
+    NSE daily data set and examine the output in the Logs tab.
+"""
 # Zipline
 from zipline.api import(    symbol,
                             get_datetime,
@@ -21,16 +24,16 @@ from zipline.api import(    symbol,
                        )
 
 def initialize(context):
-    '''
+    """
         A function to define things to do at the start of the strategy
-    '''
+    """
     # universe selection
     context.securities = [symbol('ACC'), symbol('MARUTI')]
 
 def handle_data(context, data):
-    '''
+    """
         A function to define things to do at every bar
-    '''
+    """
     # current simulation date-time
     print('{} {}'.format(data.current_dt.date(), 30*'#'))
 

@@ -1,29 +1,23 @@
-'''
+"""
     Title: Buy and hold strategy
-    Description: This is a long only strategy which rebalces the portfolio weights every month
+    Description: This is a long only strategy which rebalces the 
+        portfolio weights every month at month start.
     Style tags: Systematic
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
     Dataset: NSE Daily or NSE Minute
-'''
+"""
 # Zipline
 from zipline.api import(    symbol,
-                            get_datetime,
                             order_target_percent,
                             schedule_function,
                             date_rules,
                             time_rules,
-                            attach_pipeline,
-                            pipeline_output,
-                            set_commission,
-                            set_slippage,
-                            get_open_orders,
-                            cancel_order
                        )
 
 def initialize(context):
-    '''
+    """
         A function to define things to do at the start of the strategy
-    '''
+    """
     
     # universe selection
     context.long_portfolio = [
@@ -38,11 +32,10 @@ def initialize(context):
 
 
 def rebalance(context,data):
-    '''
-        A function to rebalance the portfolio
-    '''
-    # print to check the call date time
-    print('{} {}'.format(data.current_dt, 30*'#'))
+    """
+        A function to rebalance the portfolio, passed on to the call
+        of schedule_function above.
+    """
 
     # Position 50% of portfolio to be long in each security
     for security in context.long_portfolio:

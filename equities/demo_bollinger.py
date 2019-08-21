@@ -1,34 +1,25 @@
-'''
+"""
     Title: Intraday Technical Strategies
-    Description: This is a long short strategy based on bollinger bands and SMA dual signals
+    Description: This is a long short strategy based on bollinger bands 
+        and SMA dual signals
     Style tags: Systematic Fundamental
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: NSE Minute
-'''
-import talib as ta
+"""
+from lib.technicals.indicators import bollinger_band, ema
 
 # Zipline
 from zipline.finance import commission, slippage
 from zipline.api import(    symbol,
-                            get_datetime,
                             order_target_percent,
-                            schedule_function,
-                            date_rules,
-                            time_rules,
-                            attach_pipeline,
-                            pipeline_output,
                             set_commission,
                             set_slippage,
-                            get_open_orders,
-                            cancel_order
                        )
-'''
-  A function to define things to do at the start of the strategy
-'''
+
 def initialize(context):
-    '''
+    """
         A function to define things to do at the start of the strategy
-    '''
+    """
     # universe selection
     context.securities = [symbol('NIFTY-I'),symbol('BANKNIFTY-I')]
     
@@ -56,9 +47,9 @@ def initialize(context):
 
 
 def handle_data(context, data):
-    '''
+    """
         A function to define things to do at every bar
-    '''
+    """
     context.bar_count = context.bar_count + 1
     if context.bar_count < context.params['trade_freq']:
         return
@@ -69,24 +60,24 @@ def handle_data(context, data):
     
 
 def run_strategy(context, data):
-    '''
+    """
         A function to define core strategy steps
-    '''
+    """
     generate_signals(context, data)
     generate_target_position(context, data)
     rebalance(context, data)
 
 def rebalance(context,data):
-    '''
+    """
         A function to rebalance - all execution logic goes here
-    '''
+    """
     for security in context.securities:
         order_target_percent(security, context.target_position[security])
 
 def generate_target_position(context, data):
-    '''
+    """
         A function to define target portfolio
-    '''
+    """
     num_secs = len(context.securities)
     weight = round(1.0/num_secs,2)*context.params['leverage']
     
@@ -100,20 +91,24 @@ def generate_target_position(context, data):
     
 
 def generate_signals(context, data):
-    '''
+    """
         A function to define define the signal generation
-    '''
-    price_data = data.history(context.securities, 'close', 
-        context.params['indicator_lookback'], context.params['indicator_freq'])
+    """
+    try:
+        price_data = data.history(context.securities, 'close', 
+            context.params['indicator_lookback'], 
+            context.params['indicator_freq'])
+    except:
+        return
 
     for security in context.securities:
         px = price_data.loc[:,security].values
         context.signals[security] = signal_function(px, context.params)
 
 def signal_function(px, params):
-    '''
+    """
         The main trading logic goes here, called by generate_signals above
-    '''
+    """
     upper, mid, lower = bollinger_band(px,params['BBands_period'])
     ind2 = ema(px, params['SMA_period_short'])
     ind3 = ema(px, params['SMA_period_long'])
@@ -131,26 +126,3 @@ def signal_function(px, params):
     else:
         return 0
 
-def sma(px, lookback):
-    sig = ta.SMA(px, timeperiod=lookback)
-    return sig[-1]
-
-def ema(px, lookback):
-    sig = ta.EMA(px, timeperiod=lookback)
-    return sig[-1]
-
-def rsi(px, lookback):
-    sig = ta.RSI(px, timeperiod=lookback)
-    return sig[-1]
-
-def bollinger_band(px, lookback):
-    upper, mid, lower = ta.BBANDS(px, timeperiod=lookback)
-    return upper[-1], mid[-1], lower[-1]
-
-def macd(px, lookback):
-    macd_val, macdsignal, macdhist = ta.MACD(px)
-    return macd_val[-1], macdsignal[-1], macdhist[-1]
-
-def doji(px):
-    sig = ta.CDLDOJI(px.open, px.high, px.low, px.close)
-    return sig[-1]
