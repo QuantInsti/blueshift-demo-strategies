@@ -1,12 +1,12 @@
 """
-    Title: Intraday Technical Strategies
-    Description: This is a long short strategy based on RSI and moving average 
-        dual signals
-    Style tags: Momentum, Mean Reversion
+    Title: Bollinger Band Strategy (NYSE)
+    Description: This is a long short strategy based on bollinger bands 
+        and SMA dual signals
+    Style tags: Systematic Fundamental
     Asset class: Equities, Futures, ETFs and Currencies
-    Dataset: FX Minute
+    Dataset: NSE Minute
 """
-from lib.technicals.indicators import rsi, ema
+from lib.technicals.indicators import bollinger_band, ema
 
 # Zipline
 from zipline.finance import commission, slippage
@@ -21,18 +21,7 @@ def initialize(context):
         A function to define things to do at the start of the strategy
     """
     # universe selection
-    context.securities = [
-                               symbol('FXCM:AUD/USD'),
-                               symbol('FXCM:EUR/CHF'),
-                               symbol('FXCM:EUR/JPY'),
-                               symbol('FXCM:EUR/USD'),
-                               symbol('FXCM:GBP/JPY'),
-                               symbol('FXCM:GBP/USD'),
-                               symbol('FXCM:NZD/USD'),
-                               symbol('FXCM:USD/CAD'),
-                               symbol('FXCM:USD/CHF'),
-                               symbol('FXCM:USD/JPY'),
-                             ]
+    context.securities = [symbol('NIFTY-I'),symbol('BANKNIFTY-I')]
     
     # define strategy parameters
     context.params = {'indicator_lookback':375,
@@ -41,13 +30,13 @@ def initialize(context):
                       'sell_signal_threshold':-0.5,
                       'SMA_period_short':15,
                       'SMA_period_long':60,
-                      'RSI_period':60,
+                      'BBands_period':300,
                       'trade_freq':5,
                       'leverage':2}
     
     # variable to control trading frequency
     context.bar_count = 0
-    
+
     # variables to track signals and target portfolio
     context.signals = dict((security,0) for security in context.securities)
     context.target_position = dict((security,0) for security in context.securities)
@@ -107,7 +96,8 @@ def generate_signals(context, data):
     """
     try:
         price_data = data.history(context.securities, 'close', 
-            context.params['indicator_lookback'], context.params['indicator_freq'])
+            context.params['indicator_lookback'], 
+            context.params['indicator_freq'])
     except:
         return
 
@@ -119,15 +109,20 @@ def signal_function(px, params):
     """
         The main trading logic goes here, called by generate_signals above
     """
-    ind1 = rsi(px, params['RSI_period'])
+    upper, mid, lower = bollinger_band(px,params['BBands_period'])
     ind2 = ema(px, params['SMA_period_short'])
     ind3 = ema(px, params['SMA_period_long'])
-    
-    if ind1 > 60 and ind2-ind3 > 0:
-        return 1
-    elif ind1 < 30 and ind2-ind3 <0:
+    last_px = px[-1]
+    dist_to_upper = 100*(upper - last_px)/(upper - lower)
+
+    if dist_to_upper > 95:
         return -1
+    elif dist_to_upper < 5:
+        return 1
+    elif dist_to_upper > 40 and dist_to_upper < 60 and ind2-ind3 < 0:
+        return -1
+    elif dist_to_upper > 40 and dist_to_upper < 60 and ind2-ind3 > 0:
+        return 1
     else:
         return 0
-
 
