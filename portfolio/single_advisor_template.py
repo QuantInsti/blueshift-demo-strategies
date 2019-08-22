@@ -172,7 +172,7 @@ class Advisor():
 
     def update_performance(self):
         for key in self.last_weights:
-            if self.last_px[key] <> 0:
+            if self.last_px[key] != 0:
                 px_change = self.current_px[key] / self.last_px[key] - 1
                 self.perf = self.perf*(1 + self.last_weights[key]*px_change/self.n_assets)
 
