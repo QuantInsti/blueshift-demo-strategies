@@ -6,7 +6,7 @@
     Dataset: NSE Daily
 """
 import numpy as np
-from lib.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
+from library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
 
 
 # Zipline

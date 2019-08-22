@@ -7,7 +7,7 @@
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: NSE Daily or NSE Minute
 """
-from lib.technicals.indicators import fibonacci_support, adx
+from library.technicals.indicators import fibonacci_support, adx
 # Zipline
 from zipline.finance import commission, slippage
 from zipline.api import(    symbol,

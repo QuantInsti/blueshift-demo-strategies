@@ -7,7 +7,7 @@
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: NSE Daily or NSE Minute
 """
-from lib.technicals.indicators import bollinger_band, doji
+from library.technicals.indicators import bollinger_band, doji
 
 # Zipline
 from zipline.finance import commission, slippage

@@ -6,7 +6,7 @@
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: NSE Minute
 """
-from lib.technicals.indicators import rsi, ema
+from library.technicals.indicators import rsi, ema
 
 # Zipline
 from zipline.finance import commission, slippage

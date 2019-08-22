@@ -6,8 +6,8 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from lib.pipelines.pipelines import average_volume_filter, technical_factor
-from lib.technicals.indicators import rsi
+from library.pipelines.pipelines import average_volume_filter, technical_factor
+from library.technicals.indicators import rsi
 
 from zipline.pipeline import Pipeline
 from zipline.api import(

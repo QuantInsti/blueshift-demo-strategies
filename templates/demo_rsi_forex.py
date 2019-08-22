@@ -7,8 +7,8 @@
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: FX Minute
 """
-from lib.technicals.indicators import rsi, ema
-from lib.utils.utils import square_off
+from library.technicals.indicators import rsi, ema
+from library.utils.utils import square_off
 
 # Zipline
 from zipline.finance import commission, slippage

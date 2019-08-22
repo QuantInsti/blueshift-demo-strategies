@@ -27,7 +27,7 @@ def average_volume_filter(lookback, amount):
            
        Examples::
            
-           # from lib.pipelines.pipelines import average_volume_filter
+           # from library.pipelines.pipelines import average_volume_filter
            
            pipe = Pipeline()
            volume_filter = average_volume_filter(200, 1000000)
@@ -55,7 +55,7 @@ def filter_universe(universe):
            
        Examples::
            
-           # from lib.pipelines.pipelines import filter_universe
+           # from library.pipelines.pipelines import filter_universe
            # context.universe = [symbol(AAPL), symbol(MSFT)]
            
            pipe = Pipeline()
@@ -84,7 +84,7 @@ def period_returns(lookback):
            
        Examples::
            
-           # from lib.pipelines.pipelines import period_returns
+           # from library.pipelines.pipelines import period_returns
            pipe = Pipeline()
            momentum = period_returns(200)
            pipe.add(momentum,'momentum')
@@ -113,7 +113,7 @@ def period_returns2(lookback, volume_filter):
            
        Examples::
            
-           # from lib.pipelines.pipelines import average_volume_filter, period_returns2
+           # from library.pipelines.pipelines import average_volume_filter, period_returns2
            
            pipe = Pipeline()
            volume_filter = average_volume_filter(200, 1000000)
@@ -153,7 +153,7 @@ def technical_factor(lookback, indicator_fn, indicator_lookback=None):
            
        Examples::
            
-           # from lib.pipelines.pipelines import technical_factor
+           # from library.pipelines.pipelines import technical_factor
            
            pipe = Pipeline()
            rsi_factor = technical_factor(14, rsi)

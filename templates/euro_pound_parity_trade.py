@@ -6,8 +6,8 @@
     Dataset: FX Minute
 """
 import numpy as np
-from lib.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
-from lib.utils.utils import square_off
+from library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
+from library.utils.utils import square_off
 
 # Zipline
 from zipline.finance import commission, slippage
