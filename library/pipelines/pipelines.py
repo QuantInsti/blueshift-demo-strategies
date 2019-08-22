@@ -1,4 +1,4 @@
-'''
+"""
     Title: Custom factors and filters library
     Description: a library with common filters/ factors
     Asset class: Any
@@ -7,11 +7,11 @@
         strategy. Use `from pipelines.pipelines import period_returns`.
         Also, these (and any pipeline functionalities) are **NOT** 
         accessible in live runs.
-'''
+"""
 
 import numpy as np
 
-from zipline.pipeline import Pipeline, CustomFilter, CustomFactor
+from zipline.pipeline import CustomFilter, CustomFactor
 from zipline.pipeline.data import EquityPricing
 
 def average_volume_filter(lookback, amount):

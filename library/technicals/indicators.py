@@ -1,4 +1,4 @@
-'''
+"""
     Title: technical indicators library
     Description: a library with common technical indicators as wrapper 
         around the TA-lib. 
@@ -7,7 +7,7 @@
     Note: This cannot be run as is, but should be imported in other 
         strategy code. Use `from library.technicals.indicators import sma`
         for example, to import the `sma` functionality.
-'''
+"""
 import talib as ta
 import numpy as np
 import bisect

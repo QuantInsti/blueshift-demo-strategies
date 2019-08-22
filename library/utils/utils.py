@@ -1,10 +1,10 @@
-'''
+"""
     Title: Utility functions
     Description: This is a collection of some utility functions
     Style tags: Not applicable
     Asset class: All
     Dataset: Not applicable
-'''
+"""
 import pandas as pd
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
