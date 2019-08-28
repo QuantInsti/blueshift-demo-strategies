@@ -5,9 +5,9 @@
         near resistance if confirmed by ADX
     Style tags: momentum and mean reversion
     Asset class: Equities, Futures, ETFs and Currencies
-    Dataset: NSE Daily or NSE Minute
+    Dataset: NSE Minute
 """
-from library.technicals.indicators import fibonacci_support, adx
+from blueshift_library.technicals.indicators import fibonacci_support, adx
 # Zipline
 from zipline.finance import commission, slippage
 from zipline.api import(    symbol,
@@ -22,7 +22,7 @@ def initialize(context):
     """
     # universe selection
     context.securities = [symbol('NIFTY-I'),symbol('BANKNIFTY-I')]
-    
+
     # define strategy parameters
     context.params = {'indicator_lookback':375,
                       'indicator_freq':'1m',
@@ -33,7 +33,7 @@ def initialize(context):
                       'ADX_period':120,
                       'trade_freq':5,
                       'leverage':2}
-    
+
     # variable to control trading frequency
     context.bar_count = 0
 
@@ -53,11 +53,11 @@ def handle_data(context, data):
     context.bar_count = context.bar_count + 1
     if context.bar_count < context.params['trade_freq']:
         return
-    
+
     # time to trade, call the strategy function
     context.bar_count = 0
     run_strategy(context, data)
-    
+
 
 def run_strategy(context, data):
     """
@@ -80,7 +80,7 @@ def generate_target_position(context, data):
     """
     num_secs = len(context.securities)
     weight = round(1.0/num_secs,2)*context.params['leverage']
-    
+
     for security in context.securities:
         if context.signals[security] > context.params['buy_signal_threshold']:
             context.target_position[security] = weight
@@ -88,13 +88,13 @@ def generate_target_position(context, data):
             context.target_position[security] = -weight
         else:
             context.target_position[security] = 0
-    
+
 def generate_signals(context, data):
     """
         A function to define define the signal generation
     """
     try:
-        price_data = data.history(context.securities, ['open','high','low','close'], 
+        price_data = data.history(context.securities, ['open','high','low','close'],
             context.params['indicator_lookback'], context.params['indicator_freq'])
     except:
         return
@@ -121,5 +121,3 @@ def signal_function(px, params, last_signal):
         return 1
     else:
         return last_signal
-
-

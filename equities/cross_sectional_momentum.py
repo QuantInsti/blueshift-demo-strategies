@@ -6,7 +6,7 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from library.pipelines.pipelines import average_volume_filter, period_returns
+from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 
 from zipline.pipeline import Pipeline
 from zipline.api import(
@@ -27,13 +27,13 @@ def initialize(context):
                       'percentile':0.05,
                       'min_volume':1E7
                       }
-    
+
     # Call rebalance function on the first trading day of each month
-    schedule_function(strategy, date_rules.month_start(), 
+    schedule_function(strategy, date_rules.month_start(),
             time_rules.market_close(minutes=1))
 
     # Set up the pipe-lines for strategies
-    attach_pipeline(make_strategy_pipeline(context), 
+    attach_pipeline(make_strategy_pipeline(context),
             name='strategy_pipeline')
 
 def strategy(context, data):
@@ -49,7 +49,7 @@ def make_strategy_pipeline(context):
 
     # Set the volume filter
     volume_filter = average_volume_filter(lookback, v)
-    
+
     # compute past returns
     momentum = period_returns(lookback)
     pipe.add(momentum,'momentum')
@@ -64,7 +64,7 @@ def generate_signals(context, data):
         context.long_securities = []
         context.short_securities = []
         return
-    
+
     p = context.params['percentile']
     momentum = pipeline_results.dropna().sort_values('momentum')
     n = int(len(momentum)*p)
@@ -82,7 +82,7 @@ def rebalance(context,data):
     n = len(context.long_securities)
     if n < 1:
         return
-        
+
     weight = 0.5/n
 
     # square off old positions if any

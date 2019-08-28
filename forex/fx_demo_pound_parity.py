@@ -3,11 +3,11 @@
     Description: This is a sample Pairs Trading strategy
     Style tags: Mean-reversion, Stat-Arb
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
-    Dataset: NSE Daily
+    Dataset: FX Minute
 """
 import numpy as np
-from library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
-from library.utils.utils import square_off
+from blueshift_library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
+from blueshift_library.utils.utils import square_off
 
 # Zipline
 from zipline.finance import commission, slippage
@@ -40,13 +40,13 @@ def initialize(context):
     context.lookback = 720
 
     # used for zscore calculation
-    context.z_window = 360     
+    context.z_window = 360
 
     # Call strategy function after the London open every day
     schedule_function(pair_trading_strategy,
                      date_rules.every_day(),
                      time_rules.market_open(hours=9,minutes=30))
-    
+
     # set trading cost and slippage to zero
     set_commission(fx=commission.PipsCost(cost=0.00))
     set_slippage(fx=slippage.FixedSlippage(0.00))
@@ -60,7 +60,7 @@ def initialize(context):
 def before_trading_start(context, data):
     """ set flag to true for trading. """
     context.trading_hours = True
-    
+
 def daily_square_off(context, data):
     """ square off all positions at the end of day."""
     context.trading_hours = False
@@ -72,7 +72,7 @@ def pair_trading_strategy(context,data):
     """
     if context.trading_hours == False:
         return
-        
+
     try:
         # Get the historic data for the stocks pair
         prices = data.history(  assets = [context.x, context.y],
@@ -89,7 +89,7 @@ def pair_trading_strategy(context,data):
     # Store the price data in y and x
     y = prices[context.y]
     x = prices[context.x]
-    
+
     # Calculate the hedge ratio and z_score
     _, context.hedge_ratio, resids = hedge_ratio(y, x)
     context.z_score = z_score(resids, lookback=context.z_window)
@@ -117,16 +117,16 @@ def trading_signal(context, data):
 
 def place_order(context):
     """
-        A function to place order. 
+        A function to place order.
     """
     # no change in positioning
     if context.signal == 999:
         return
-    
+
     weight = context.signal*context.leverage/2
-    
+
     # cancel all outstanding orders
     cancel_all_open_orders(context)
     # send fresh orders
     order_target_percent(context.x, -weight*context.hedge_ratio)
-    order_target_percent(context.y, weight)                     
+    order_target_percent(context.y, weight)
