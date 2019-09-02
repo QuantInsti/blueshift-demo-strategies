@@ -1,6 +1,9 @@
 """
-    Title: Pairs Trading Startegy
-    Description: This is a sample Pairs Trading strategy
+    Title: Cross-channel Parity
+    Description: This is a sample Pairs Trading strategy with the 
+        Euro and Sterling Pound (the cross-channel spread). This should
+        have worked till 2016 (Brexit!!), and many be in future. 
+        Minimum capital 10,000.
     Style tags: Mean-reversion, Stat-Arb
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
     Dataset: FX Minute
@@ -18,12 +21,16 @@ from zipline.api import(    symbol,
                             schedule_function,
                             date_rules,
                             time_rules,
+                            set_account_currency
                        )
 
 def initialize(context):
     """
         function to define things to do at the start of the strategy
     """
+    # set the account currency, only valid for backtests
+    set_account_currency("USD")
+    
     # trading pound parity!
     # this should work after the European sovereign crisis settled down
     # and before the Brexit noise started (2012-2015)
@@ -53,6 +60,12 @@ def initialize(context):
 
     # square off towards to NYC close
     context.trading_hours = False
+    
+    # set a timeout for trading
+    schedule_function(stop_trading,
+                    date_rules.every_day(),
+                    time_rules.market_close(hours=0, minutes=31))
+    # call square off to zero out positions 30 minutes before close.
     schedule_function(daily_square_off,
                     date_rules.every_day(),
                     time_rules.market_close(hours=0, minutes=30))
@@ -60,6 +73,10 @@ def initialize(context):
 def before_trading_start(context, data):
     """ set flag to true for trading. """
     context.trading_hours = True
+
+def stop_trading(context, data):
+    """ stop trading and prepare to square off."""
+    context.trading_hours = False
 
 def daily_square_off(context, data):
     """ square off all positions at the end of day."""

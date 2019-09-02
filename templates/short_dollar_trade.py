@@ -15,12 +15,15 @@ from zipline.api import(    symbol,
                             time_rules,
                             set_commission,
                             set_slippage,
+                            set_account_currency
                        )
 
 def initialize(context):
     """
         A function to define things to do at the start of the strategy
     """
+    # set the account currency, only valid for backtests
+    set_account_currency("USD")
     
     # universe selection
     context.short_dollar_basket = {

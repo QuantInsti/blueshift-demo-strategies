@@ -2,7 +2,9 @@
     Title: Bollinger Band Strategy (Forex)
     Description: This is a long short strategy based on Bollinger bands
         breakout signals. We also square off all positions at the end
-        of the day to avoid any roll-over costs.
+        of the day to avoid any roll-over costs. The trade size is 
+        fixed - mini lotsize (1000) multiplied by a leverage. The 
+        leverage is a parameter, defaults to 1. Minimum capital 1000.
     Style tags: Momentum, Mean Reversion
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: FX Minute
@@ -13,18 +15,25 @@ from blueshift_library.utils.utils import square_off
 # Zipline
 from zipline.finance import commission, slippage
 from zipline.api import(    symbol,
-                            order_target_percent,
+                            order_target,
                             set_commission,
                             set_slippage,
                             schedule_function,
                             date_rules,
                             time_rules,
+                            set_account_currency
                        )
 
 def initialize(context):
     """
         A function to define things to do at the start of the strategy
     """
+    # set the account currency, only valid for backtests
+    set_account_currency("USD")
+    
+    # lot-size (mini-lot for most brokers)
+    context.lot_size = 1000
+    
     # universe selection
     context.securities = [
                                symbol('FXCM:AUD/USD'),
@@ -48,8 +57,8 @@ def initialize(context):
                       'SMA_period_long':60,
                       'BBands_period':60,
                       'trade_freq':30,
-                      'leverage':2,
-                      'pip_cost':0.00005}
+                      'leverage':1,
+                      'pip_cost':0.00003}
 
     # variable to control trading frequency
     context.bar_count = 0
@@ -63,6 +72,10 @@ def initialize(context):
     set_commission(fx=commission.PipsCost(cost=context.params['pip_cost']))
     set_slippage(fx=slippage.FixedSlippage(0.00))
 
+    # set a timeout for trading
+    schedule_function(stop_trading,
+                    date_rules.every_day(),
+                    time_rules.market_close(hours=0, minutes=31))
     # call square off to zero out positions 30 minutes before close.
     schedule_function(daily_square_off,
                     date_rules.every_day(),
@@ -70,12 +83,16 @@ def initialize(context):
 
 
 def before_trading_start(context, data):
-    """ set flag to true for trading. """
+    """ get ready for trading at the market open. """
     context.trading_hours = True
+
+def stop_trading(context, data):
+    """ stop trading and prepare to square off."""
+    context.trading_hours = False
 
 def daily_square_off(context, data):
     """ square off all positions at the end of day."""
-    context.trading_hours = False
+    context.trading_hours = False # already done in `stop_trading`
     square_off(context)
 
 def handle_data(context, data):
@@ -107,14 +124,13 @@ def rebalance(context,data):
         A function to rebalance - all execution logic goes here
     """
     for security in context.securities:
-        order_target_percent(security, context.target_position[security])
+        order_target(security, context.target_position[security])
 
 def generate_target_position(context, data):
     """
         A function to define target portfolio
     """
-    num_secs = len(context.securities)
-    weight = round(1.0/num_secs,2)*context.params['leverage']
+    weight = context.lot_size*context.params['leverage']
 
     for security in context.securities:
         if context.signals[security] > context.params['buy_signal_threshold']:
