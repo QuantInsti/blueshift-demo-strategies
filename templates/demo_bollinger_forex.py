@@ -30,17 +30,16 @@ def initialize(context):
     """
     # set the account currency, only valid for backtests
     set_account_currency("USD")
-    
+
     # lot-size (mini-lot for most brokers)
     context.lot_size = 1000
-    
+
     # universe selection
     context.securities = [
                                symbol('FXCM:AUD/USD'),
                                symbol('FXCM:EUR/CHF'),
                                symbol('FXCM:EUR/JPY'),
                                symbol('FXCM:EUR/USD'),
-                               symbol('FXCM:GBP/JPY'),
                                symbol('FXCM:GBP/USD'),
                                symbol('FXCM:NZD/USD'),
                                symbol('FXCM:USD/CAD'),
