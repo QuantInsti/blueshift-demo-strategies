@@ -1,13 +1,12 @@
 """
-    Title: Volatility factor
-    Description: This strategy uses volatility to rank securities
-                and go short (long) the top (bottom) n-percentile
-    Style tags: volatility factor
+    Title: Classic (Pedersen) time-series momentum (equal weights)
+    Description: This strategy uses past returns and go long (short) 
+                the positive (negative) n-percentile
+    Style tags: Momentum
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from pydata.pipelines.pipelines import average_volume_filter, technical_factor
-from technicals.indicators import volatility
+from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 
 from zipline.pipeline import Pipeline
 from zipline.errors import NoFurtherDataError
@@ -26,7 +25,7 @@ def initialize(context):
     '''
     # The context variables can be accessed by other methods
     context.params = {'lookback':12,
-                      'percentile':0.05,
+                      'percentile':0.1,
                       'min_volume':1E7
                       }
     
@@ -53,8 +52,8 @@ def make_strategy_pipeline(context):
     volume_filter = average_volume_filter(lookback, v)
     
     # compute past returns
-    vol_factor = technical_factor(lookback, volatility, 1)
-    pipe.add(vol_factor,'vol')
+    momentum = period_returns(lookback)
+    pipe.add(momentum,'momentum')
     pipe.set_screen(volume_filter)
 
     return pipe
@@ -68,24 +67,29 @@ def generate_signals(context, data):
         return
     
     p = context.params['percentile']
-    vol_factor = pipeline_results
-    candidates = vol_factor[vol_factor > 0].dropna().sort_values('vol')
-    n = int(len(candidates)*p)
+    momentum = pipeline_results
     
+    long_candidates = momentum[momentum > 0].dropna().sort_values('momentum')
+    short_candidates = momentum[momentum < 0].dropna().sort_values('momentum')
+    
+    n_long = len(long_candidates)
+    n_short = len(short_candidates)
+    n = int(min(n_long,n_short)*p)
+
     if n == 0:
         print("{}, no signals".format(data.current_dt))
         context.long_securities = []
         context.short_securities = []
-
-    context.long_securities = candidates.index[:n]
-    context.short_securities = candidates.index[-n:]
+    
+    context.long_securities = long_candidates.index[-n:]
+    context.short_securities = short_candidates.index[:n]
 
 def rebalance(context,data):
     # weighing function
     n = len(context.long_securities)
     if n < 1:
         return
-        
+    
     weight = 0.5/n
 
     # square off old positions if any

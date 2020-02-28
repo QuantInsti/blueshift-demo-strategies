@@ -1,13 +1,13 @@
 """
-    Title: Utterly experimental, can RSI be a factor?
-    Description: This strategy uses RSI indicator to rank securities
-                and go long (short) the top (bottom) n-percentile
-    Style tags: Technical momentum
+    Title: Volatility factor
+    Description: This strategy uses volatility to rank securities
+                and go short (long) the top (bottom) n-percentile
+    Style tags: volatility factor
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from pydata.pipelines.pipelines import average_volume_filter, technical_factor
-from technicals.indicators import rsi
+from blueshift_library.pipelines.pipelines import average_volume_filter, technical_factor
+from blueshift_library.technicals.indicators import volatility
 
 from zipline.pipeline import Pipeline
 from zipline.errors import NoFurtherDataError
@@ -53,8 +53,8 @@ def make_strategy_pipeline(context):
     volume_filter = average_volume_filter(lookback, v)
     
     # compute past returns
-    rsi_factor = technical_factor(lookback, rsi, 14)
-    pipe.add(rsi_factor,'rsi')
+    vol_factor = technical_factor(lookback, volatility, 1)
+    pipe.add(vol_factor,'vol')
     pipe.set_screen(volume_filter)
 
     return pipe
@@ -68,25 +68,24 @@ def generate_signals(context, data):
         return
     
     p = context.params['percentile']
-    rsi_factor = pipeline_results
-    candidates = rsi_factor[rsi_factor > 0].dropna().sort_values('rsi')
-    print(candidates)
+    vol_factor = pipeline_results
+    candidates = vol_factor[vol_factor > 0].dropna().sort_values('vol')
     n = int(len(candidates)*p)
-
+    
     if n == 0:
         print("{}, no signals".format(data.current_dt))
         context.long_securities = []
         context.short_securities = []
-        
-    context.long_securities = candidates.index[-n:]
-    context.short_securities = candidates.index[:n]
+
+    context.long_securities = candidates.index[:n]
+    context.short_securities = candidates.index[-n:]
 
 def rebalance(context,data):
     # weighing function
     n = len(context.long_securities)
     if n < 1:
         return
-
+        
     weight = 0.5/n
 
     # square off old positions if any

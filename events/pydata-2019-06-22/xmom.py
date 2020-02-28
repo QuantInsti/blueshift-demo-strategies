@@ -6,7 +6,7 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from pydata.pipelines.pipelines import average_volume_filter, period_returns
+from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 
 from zipline.pipeline import Pipeline
 from zipline.errors import NoFurtherDataError

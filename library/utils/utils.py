@@ -10,14 +10,40 @@ import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 from sklearn.ensemble import RandomForestRegressor
 
-from zipline.api import (get_open_orders, cancel_order, 
-                         order_target_percent, get_datetime)
+__ENGINE__ = None
+
+try:
+    from blueshift.api import (get_open_orders, cancel_order, 
+                              order_target_percent, get_datetime)
+    __ENGINE__ = 'blueshift'
+except ImportError:
+    from zipline.api import (get_open_orders, cancel_order, 
+                             order_target_percent, get_datetime)
+    __ENGINE__ = 'zipline'
+
 
 def cancel_all_open_orders(context):
     """ cancel all open orders. """
-    open_orders = get_open_orders()     
-    for oo in open_orders:  
-         cancel_order(oo)
+    def blueshift_f(context): 
+        open_orders = get_open_orders() 
+        for oo in open_orders:  
+             cancel_order(oo)
+             
+    def zipline_f(context):
+        open_orders = get_open_orders()
+        if not open_orders:
+            return
+        for key in open_orders:
+            orders = open_orders[key]
+            if not orders:
+                continue
+            for order in orders:
+                cancel_order(order)
+            
+    if __ENGINE__ == 'blueshift':
+        return blueshift_f(context)
+    else:
+        return zipline_f(context)
          
 def square_off(context):
     """ cancel all open orders. """

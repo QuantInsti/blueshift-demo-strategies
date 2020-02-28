@@ -9,10 +9,16 @@
         accessible in live runs.
 """
 
+__ENGINE__ = None
+
 import numpy as np
 
-from zipline.pipeline import CustomFilter, CustomFactor
-from zipline.pipeline.data import EquityPricing
+try:
+    from zipline.pipeline import CustomFilter, CustomFactor
+    from zipline.pipeline.data import EquityPricing
+    __ENGINE__ = 'zipline'
+except ImportError:
+    raise ValueError('pipline is not supported on this version of blueshift.')
 
 def average_volume_filter(lookback, amount):
     """
