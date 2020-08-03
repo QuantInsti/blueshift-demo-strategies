@@ -38,7 +38,7 @@ def cancel_all_open_orders(context):
             if not orders:
                 continue
             for order in orders:
-                cancel_order(order)
+                cancel_order(order.id)
             
     if __ENGINE__ == 'blueshift':
         return blueshift_f(context)

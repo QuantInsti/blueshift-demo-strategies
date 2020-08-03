@@ -57,7 +57,7 @@ def filter_universe(universe):
            universe (list): A list of asset objects to keep.
            
        Returns:
-           A custom filter object
+           A custom filter object.
            
        Examples::
            
@@ -75,6 +75,36 @@ def filter_universe(universe):
             in_universe = [asset in universe for asset in assets]
             out[:] = in_universe
     
+    return FilteredUniverse()
+
+def exclude_assets(universe):
+    """
+       Returns a custom filter object to filter based on a user 
+       supplied list of assets objects to exclude.
+       
+       Args:
+           universe (list): A list of asset objects to exclude.
+           
+       Returns:
+           A custom filter object.
+           
+       Examples::
+           
+           # from library.pipelines.pipelines import filter_universe
+           # context.exclude = [symbol(AAPL), symbol(MSFT)]
+           
+           pipe = Pipeline()
+           exclude_filter = filter_universe(context.exclude)
+           pipe.set_screen(exclude_filter)
+    """
+    class FilteredUniverse(CustomFilter):
+        inputs = ()
+        window_length = 1
+ 
+        def compute(self,today,assets,out):
+            in_universe = [asset not in universe for asset in assets]
+            out[:] = in_universe
+ 
     return FilteredUniverse()
 
 def period_returns(lookback):
