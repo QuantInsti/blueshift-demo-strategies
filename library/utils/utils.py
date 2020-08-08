@@ -5,54 +5,292 @@
     Asset class: All
     Dataset: Not applicable
 """
+import math
 import pandas as pd
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 from sklearn.ensemble import RandomForestRegressor
-
-__ENGINE__ = None
+    
+PLATFORM_ENGINE = None
 
 try:
-    from blueshift.api import (get_open_orders, cancel_order, 
-                              order_target_percent, get_datetime)
-    __ENGINE__ = 'blueshift'
+    from blueshift.api import get_open_orders, cancel_order, order_target, square_off, get_datetime
+    PLATFORM_ENGINE = 'blueshift'
 except ImportError:
-    from zipline.api import (get_open_orders, cancel_order, 
-                             order_target_percent, get_datetime)
-    __ENGINE__ = 'zipline'
-
-
-def cancel_all_open_orders(context):
-    """ cancel all open orders. """
-    def blueshift_f(context): 
+    from zipline.api import get_open_orders, cancel_order, order_target, get_datetime
+    PLATFORM_ENGINE = 'zipline'
+  
+def cancel_open_orders(context, asset=None):
+    """
+        Cancel open order for a given asset, or all assets.
+        
+        Args:
+            `context (obj)`: Algo context object.
+            
+            `asset (obj)`: Asset to square off, or `None` for all.
+            
+        Returns:
+            None.
+    """
+    def blueshift_f(context, asset): 
         open_orders = get_open_orders() 
-        for oo in open_orders:  
-             cancel_order(oo)
+        for oo in open_orders: 
+            if not asset:
+                cancel_order(oo)
+            elif oo.asset == asset:
+                cancel_order(oo)
              
-    def zipline_f(context):
+    def zipline_f(context, asset):
         open_orders = get_open_orders()
         if not open_orders:
             return
+        
+        if asset:
+            orders = open_orders.get(asset, None)
+            if orders:
+                for oo in orders:
+                    cancel_order(oo.id)
+            return
+        
         for key in open_orders:
             orders = open_orders[key]
-            if not orders:
-                continue
-            for order in orders:
-                cancel_order(order.id)
+            for oo in orders:
+                cancel_order(oo.id)
             
-    if __ENGINE__ == 'blueshift':
-        return blueshift_f(context)
+    if PLATFORM_ENGINE == 'blueshift':
+        return blueshift_f(context, asset)
     else:
-        return zipline_f(context)
-         
-def square_off(context):
-    """ cancel all open orders. """
-    cancel_all_open_orders(context)
+        return zipline_f(context, asset)
+    
+def cancel_all_open_orders(context):
+    return cancel_open_orders(context)
+
+def squareoff(context, asset=None):
+    """
+        Square off assets. If `asset` is `None`, square of all assets.
+        Else the specified asset.
+        
+        Args:
+            `context (obj)`: Algo context object.
+            
+            `asset (obj)`: Asset to square off, or `None` for all.
+            
+        Returns:
+            None.
+    """
+    if asset:
+        if PLATFORM_ENGINE == 'blueshift':
+            square_off(asset)
+        else:
+            order_target(asset, 0)
+        return
+    
+    cancel_open_orders(context)
+    
+    if PLATFORM_ENGINE == 'blueshift':
+        square_off()
+    else:
+        positions = context.portfolio.positions
+        for asset in positions:
+            order_target(asset, 0)
+            
+def _get_entry_side_price(position):
+    if PLATFORM_ENGINE == 'zipline':
+        side = 'long' if position.amount > 0 else 'short'
+        entry_price = position.cost_basis
+        current_price = position.last_sale_price
+    else:
+        side = 'long' if position.quantity > 0 else 'short'
+        if side == 'long':
+            entry_price = position.buy_price
+        else:
+            entry_price = position.sell_price
+            
+        current_price = position.last_price
+        
+    return side, entry_price, current_price
+    
+def handle_stop_loss(context, data, asset, method, target):
+    """
+        Monitor stop loss activities for all assets or a given 
+        asset, based on `method` and a `target`. Use this function 
+        in `handle_data` to monitor and trigger this activity.
+        
+        Note:
+            This function monitors the current positions for 
+            assets. If the pnl for a position has hit the target, it
+            will place a square-off order. Supported methods for 
+            targets are 
+            
+            - `PRICE`: The `target` is the price to trigger square-off.
+            - `MOVE`: The `target` is the difference between entry 
+                and current price to trigger square-off.
+            - `PERCENT`: The `target` is the percent move (in points).
+            
+        If `asset` is None, the function is applied for all assets,  
+        else only the given asset.
+        
+        Args:
+            `context (obj)`: The algo context object.
+            
+            `data (obj)`: The algo data object.
+            
+            `asset (obj)`: Currently ignored.
+            
+            `method (str)`: Method of take profit.
+            
+            `target (number)`: Target for this action.
+            
+        Returns:
+            None
+    """
+    target = abs(target)
     
     positions = context.portfolio.positions
-    for asset in positions:
-        order_target_percent(asset, 0)
+    if not positions:
+        return
     
+    def _apply_target(asset, side, entry, current):
+        hit = False
+        if method == 'PRICE':
+            hit = current < target if side == 'long' else current > target
+        elif method == 'MOVE':
+            move = current - entry
+            hit = -move > target if side == 'long' else move > target
+        elif method == 'PERCENT':
+            move = 100*(current/entry -1)
+            hit = -move > target if side == 'long' else move > target
+            
+        if hit:
+            squareoff(context, asset)
+    
+    if asset is None:
+        for asset in positions:
+            side, entry, current = _get_entry_side_price(positions[asset])
+            _apply_target(asset, side, entry, current)
+    else:
+        if asset not in positions:
+            return
+        side, entry, current = _get_entry_side_price(positions[asset])
+        _apply_target(asset, side, entry, current)
+        
+
+def handle_take_profit(context, data, asset, method, target):
+    """
+        Monitor take profit activities for all assets or a given 
+        asset, based on `method` and a `target`. Use this function 
+        in `handle_data` to monitor and trigger this activity.
+        
+        Note:
+            This function monitors the current positions for 
+            assets. If the pnl for a position has hit the target, it
+            will place a square-off order. Supported methods for 
+            targets are 
+            
+            - `PRICE`: The `target` is the price to trigger square-off.
+            - `MOVE`: The `target` is the difference between entry 
+                and current price to trigger square-off.
+            - `PERCENT`: The `target` is the percent move (in points).
+            
+        If `asset` is None, the function is applied for all assets,  
+        else only the given asset.
+        
+        Args:
+            `context (obj)`: The algo context object.
+            
+            `data (obj)`: The algo data object.
+            
+            `asset (obj)`: Currently ignored.
+            
+            `method (str)`: Method of take profit.
+            
+            `target (number)`: Target for this action.
+            
+        Returns:
+            None
+    """
+    target = abs(target)
+    
+    positions = context.portfolio.positions
+    if not positions:
+        return
+    
+    def _apply_target(asset, side, entry, current):
+        hit = False
+        if method == 'PRICE':
+            hit = current > target if side == 'long' else current < target
+        elif method == 'MOVE':
+            move = current - entry
+            hit = move > target if side == 'long' else -move > target
+        elif method == 'PERCENT':
+            move = 100*(current/entry -1)
+            hit = move > target if side == 'long' else -move > target
+            
+        if hit:
+            squareoff(context, asset)
+            
+    if asset is None:
+        for asset in positions:
+            side, entry, current = _get_entry_side_price(positions[asset])
+            _apply_target(asset, side, entry, current)
+    else:
+        if asset not in positions:
+            return
+        side, entry, current = _get_entry_side_price(positions[asset])
+        _apply_target(asset, side, entry, current)
+    
+def position_size_function(func, param, size):
+    """
+        Function to map a signal number to a position size. Use this 
+        function for position size, mapped between -1 to +1.
+        
+        Note:
+            Currently, the following functions are implemented.
+            
+            - `BINARY`: generates either +1 or -1 depending on if the
+                `size` is greater or less than `param`.
+            - `STEP`: generates +1 if `size` is greater than `param`,
+                -1 if `size` is less than `-param` or returns 0. Here
+                `param` must positive number.
+            - `RELU`: generates +1 or -1 same as above, and interpoaltes
+                linearly between these if `size` is between this range.
+            - `SIGMOID`: generates a smooth sigmoid output between +1 
+                and -1, using `param` as the exponentiation factor.
+        
+        Args:
+            `func (str)`: sizing function.
+            
+            `param (number)`: parameter to specify position function.
+            
+            `size (number)`: input size.
+            
+        Returns:
+            Number. Position sizing for the input.
+    """
+    if func not in ['BINARY','STEP', 'RELU', 'SIGMOID']:
+        raise ValueError('function not recognized')
+        
+    if func == 'BINARY':
+        return 1 if size > param else -1
+    elif func == 'STEP':
+        if size > param:
+            return 1
+        elif size < -param:
+            return -1
+        else:
+            return 0
+    elif func == 'RELU':
+        sign = 1 if size > 0 else -1
+        size = abs(size)
+        if size > param:
+            return sign
+        else:
+            return sign*(size/param)
+    elif func == 'SIGMOID':
+        sign = 1 if size > 0 else -1
+        size = abs(size)
+        factor = math.exp(size*param)/(1 + math.exp(size*param))
+        return sign*factor
 
 def hedge_ratio(Y, X):
     """
