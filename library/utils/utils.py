@@ -135,7 +135,7 @@ def handle_stop_loss(context, data, asset, method, target):
             
             `data (obj)`: The algo data object.
             
-            `asset (obj)`: Currently ignored.
+            `asset (obj)`: Asset to track (`None` for all).
             
             `method (str)`: Method of take profit.
             
@@ -200,7 +200,7 @@ def handle_take_profit(context, data, asset, method, target):
             
             `data (obj)`: The algo data object.
             
-            `asset (obj)`: Currently ignored.
+            `asset (obj)`: Asset to track (`None` for all).
             
             `method (str)`: Method of take profit.
             
