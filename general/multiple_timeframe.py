@@ -62,7 +62,9 @@ def rebalance(context,data):
 
 def to_period(price, period):
     """ 
-        define period as Pandas style, e.g. '30T' for 30-minutes aggregation.
+        Define period as Pandas style, e.g. '30T' for 30-minutes aggregation.
+        For a full list of Pandas offset abbr. see the link:
+        https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
     """
     if period.endswith('D'):
         label = closed = "left"
