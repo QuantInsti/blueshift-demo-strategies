@@ -8,18 +8,12 @@
         Also, these (and any pipeline functionalities) are **NOT** 
         accessible in live runs.
 """
-
-ENGINE = None
-
 import numpy as np
 
-try:
-    from zipline.pipeline import CustomFilter, CustomFactor
-    from zipline.pipeline.data import EquityPricing
-    ENGINE = 'zipline'
-except:
-    raise ValueError('pipline is not supported on this version of blueshift.')
-
+from zipline.pipeline import CustomFilter, CustomFactor
+from zipline.pipeline.data import EquityPricing
+ENGINE = 'zipline'
+    
 def average_volume_filter(lookback, amount):
     """
        Returns a custom filter object for volume-based filtering.
