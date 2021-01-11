@@ -8,6 +8,13 @@
     Dataset: Not applicable
     Note: this works in blueshift live version only!!!
 """
+########################################################################
+# PLACING TRADE REALTIME CAN SEND TOO MANY TRADES, PLEASE CEHCK YOUR 
+# STRATEGY LOGIC CAREFULLY. TARGETTING FUNCTION DOES NOT CHECK FOR 
+# PENDING ORDERS SO MAY NOT WORK AS EXPECTED IF TRADES ARE PLACED 
+# AT A HIGH RATE. USE AN ON/OFF VARIABLE TO CONTROL PLACING OF TRADES.
+# THE FOLLOWING EXAMPLES DO NOT PLACE REPEATED TRADES IN THE HANDLER.
+########################################################################
 
 from blueshift.api import symbol, order_target, get_datetime, terminate
 from blueshift.api import on_data, off_data
