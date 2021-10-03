@@ -12,12 +12,8 @@
 from blueshift_library.technicals.indicators import rsi, ema
 from blueshift_library.utils.utils import square_off
 
-# Zipline
-from zipline.finance import commission, slippage
-from zipline.api import(    symbol,
+from blueshift.api import(    symbol,
                             order_target,
-                            set_commission,
-                            set_slippage,
                             schedule_function,
                             date_rules,
                             time_rules,
@@ -36,15 +32,15 @@ def initialize(context):
 
     # universe selection
     context.securities = [
-                               symbol('FXCM:AUD/USD'),
-                               symbol('FXCM:EUR/CHF'),
-                               symbol('FXCM:EUR/JPY'),
-                               symbol('FXCM:EUR/USD'),
-                               symbol('FXCM:GBP/USD'),
-                               symbol('FXCM:NZD/USD'),
-                               symbol('FXCM:USD/CAD'),
-                               symbol('FXCM:USD/CHF'),
-                               symbol('FXCM:USD/JPY'),
+                               symbol('AUD/USD'),
+                               symbol('EUR/CHF'),
+                               symbol('EUR/JPY'),
+                               symbol('EUR/USD'),
+                               symbol('GBP/USD'),
+                               symbol('NZD/USD'),
+                               symbol('USD/CAD'),
+                               symbol('USD/CHF'),
+                               symbol('USD/JPY'),
                              ]
 
     # define strategy parameters
@@ -66,10 +62,6 @@ def initialize(context):
     # variables to track signals and target portfolio
     context.signals = dict((security,0) for security in context.securities)
     context.target_position = dict((security,0) for security in context.securities)
-
-    # set trading cost and slippage to zero
-    set_commission(fx=commission.PipsCost(cost=context.params['pip_cost']))
-    set_slippage(fx=slippage.FixedSlippage(0.00))
 
     # set a timeout for trading
     schedule_function(stop_trading,

@@ -12,12 +12,8 @@ import numpy as np
 from blueshift_library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
 from blueshift_library.utils.utils import square_off
 
-# Zipline
-from zipline.finance import commission, slippage
-from zipline.api import(    symbol,
+from blueshift.api import(  symbol,
                             order_target_percent,
-                            set_commission,
-                            set_slippage,
                             schedule_function,
                             date_rules,
                             time_rules,
@@ -34,8 +30,8 @@ def initialize(context):
     # trading pound parity!
     # this should work after the European sovereign crisis settled down
     # and before the Brexit noise started (2012-2015)
-    context.x = symbol('FXCM:GBP/USD')
-    context.y = symbol('FXCM:EUR/USD')
+    context.x = symbol('GBP/USD')
+    context.y = symbol('EUR/USD')
     context.leverage = 5
     context.signal = 0
 
@@ -53,10 +49,6 @@ def initialize(context):
     schedule_function(pair_trading_strategy,
                      date_rules.every_day(),
                      time_rules.market_open(hours=9,minutes=30))
-
-    # set trading cost and slippage to zero
-    set_commission(fx=commission.PipsCost(cost=0.00))
-    set_slippage(fx=slippage.FixedSlippage(0.00))
 
     # square off towards to NYC close
     context.trading_hours = False

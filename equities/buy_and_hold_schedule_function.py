@@ -5,9 +5,12 @@
     Style tags: Systematic
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
     Dataset: NSE Daily or NSE Minute
+    
+    zipline:25s
+    blueshift: 1.08s
 """
-# Zipline
-from zipline.api import(    symbol,
+
+from blueshift.api import(    symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,
@@ -25,7 +28,7 @@ def initialize(context):
                                symbol('TCS')
                              ]
     
-    # Call rebalance function on the first trading day of each month after 2.5 hours from market open
+    # Call rebalance function on the first trading day of each month 2.5 hours before market close
     schedule_function(rebalance,
                     date_rules.month_start(days_offset=0),
                     time_rules.market_close(hours=2, minutes=30))

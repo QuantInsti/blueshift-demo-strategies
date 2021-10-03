@@ -8,14 +8,15 @@
 """
 from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 
-from zipline.pipeline import Pipeline
-from zipline.api import(
+from blueshift.pipeline import Pipeline
+from blueshift.api import(
                             order_target_percent,
                             schedule_function,
                             date_rules,
                             time_rules,
                             attach_pipeline,
                             pipeline_output,
+                            get_datetime,
                        )
 
 def initialize(context):
@@ -70,7 +71,7 @@ def generate_signals(context, data):
     n = int(len(momentum)*p)
 
     if n == 0:
-        print("{}, no signals".format(data.current_dt))
+        print("{}, no signals".format(data.get_datetime()))
         context.long_securities = []
         context.short_securities = []
 

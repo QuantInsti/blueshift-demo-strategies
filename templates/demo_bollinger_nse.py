@@ -8,9 +8,8 @@
 """
 from blueshift_library.technicals.indicators import bollinger_band, ema
 
-# Zipline
-from zipline.finance import commission, slippage
-from zipline.api import(    symbol,
+from blueshift.finance import commission, slippage
+from blueshift.api import(    symbol,
                             order_target_percent,
                             set_commission,
                             set_slippage,
