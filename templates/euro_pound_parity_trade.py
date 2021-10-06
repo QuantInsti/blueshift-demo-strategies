@@ -85,7 +85,7 @@ def pair_trading_strategy(context,data):
     try:
         # Get the historic data for the stocks pair
         prices = data.history(  assets = [context.x, context.y],
-                                fields = "price",
+                                fields = "close",
                                 bar_count = context.lookback,
                                 frequency = "1m"
                              )
