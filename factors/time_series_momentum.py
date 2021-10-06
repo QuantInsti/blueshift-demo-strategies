@@ -8,8 +8,9 @@
 """
 from library.pipelines.pipelines import average_volume_filter, period_returns
 
-from zipline.pipeline import Pipeline
-from zipline.api import(
+from blueshift.pipeline import Pipeline
+from blueshift.pipeline.data import EquityPricing
+from blueshift.api import(
                             order_target_percent,
                             schedule_function,
                             date_rules,
