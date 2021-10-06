@@ -109,6 +109,9 @@ def signal_function(px, params):
         The main trading logic goes here, called by generate_signals above
     """
     upper, mid, lower = bollinger_band(px,params['BBands_period'])
+    if upper - lower == 0:
+        return 0
+    
     ind2 = ema(px, params['SMA_period_short'])
     ind3 = ema(px, params['SMA_period_long'])
     last_px = px[-1]
