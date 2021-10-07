@@ -28,7 +28,7 @@ def initialize(context):
     # The context variables can be accessed by other methods
     context.params = {'lookback':12,
                       'percentile':0.1,
-                      'min_volume':1E7
+                      'min_volume':1E8
                       }
     
     # Call rebalance function on the first trading day of each month

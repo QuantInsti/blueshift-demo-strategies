@@ -28,7 +28,7 @@ def initialize(context):
     # The context variables can be accessed by other methods
     context.params = {'lookback':12,
                       'percentile':0.05,
-                      'min_volume':1E7
+                      'min_volume':1E8
                       }
     
     # Call rebalance function on the first trading day of each month
@@ -63,7 +63,7 @@ def make_strategy_pipeline(context):
 def generate_signals(context, data):
     try:
         pipeline_results = pipeline_output('strategy_pipeline')
-    except NoFurtherDataError:
+    except:
         context.long_securities = []
         context.short_securities = []
         return
