@@ -86,12 +86,18 @@ def pair_trading_strategy(context,data):
         # Get the historic data for the stocks pair
         prices = data.history(  assets = [context.x, context.y],
                                 fields = "close",
-                                bar_count = context.lookback,
+                                nbars = context.lookback,
                                 frequency = "1m"
                              )
     except:
         return
-
+    
+    # drop nan values
+    prices = prices.dropna()
+    if len(prices) < 5:
+        print(f'too few data points for z-score:{len(prices)}.')
+        return
+    
     # Take log of the prices
     prices = np.log(prices)
 
