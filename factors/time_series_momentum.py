@@ -6,7 +6,7 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from library.pipelines.pipelines import average_volume_filter, period_returns
+from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 
 from blueshift.pipeline import Pipeline
 from blueshift.pipeline.data import EquityPricing
