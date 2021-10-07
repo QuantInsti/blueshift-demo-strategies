@@ -16,6 +16,7 @@ from blueshift.api import(
                             time_rules,
                             attach_pipeline,
                             pipeline_output,
+                            get_datetime
                        )
 
 def initialize(context):
@@ -70,7 +71,7 @@ def generate_signals(context, data):
     n = int(len(momentum)*p)
 
     if n == 0:
-        print("{}, no signals".format(data.current_dt))
+        print("{}, no signals".format(get_datetime()))
         context.long_securities = []
         context.short_securities = []
 
