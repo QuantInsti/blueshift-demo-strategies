@@ -10,6 +10,7 @@ from blueshift_library.pipelines.pipelines import average_volume_filter, technic
 from blueshift_library.technicals.indicators import rsi
 
 from blueshift.pipeline import Pipeline
+from blueshift.errors import NoFurtherDataError
 from blueshift.api import(
                             order_target_percent,
                             schedule_function,
@@ -62,7 +63,7 @@ def make_strategy_pipeline(context):
 def generate_signals(context, data):
     try:
         pipeline_results = pipeline_output('strategy_pipeline')
-    except:
+    except NoFurtherDataError:
         context.long_securities = []
         context.short_securities = []
         return
