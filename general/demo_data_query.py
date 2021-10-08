@@ -27,9 +27,9 @@ def initialize(context):
     # universe selection
     context.securities = [symbol('NIFTY-I'), symbol('BANKNIFTY-I')]
 
-def handle_data(context, data):
+def before_trading_start(context, data):
     '''
-        A function to defines things to do at every bar
+        A function to defines things to do at before market open
     '''
     # current simulation date-time
     print('current simulation time {}'.format(data.current_dt))

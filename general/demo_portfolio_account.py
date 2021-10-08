@@ -65,7 +65,7 @@ def analyze(context, perf):
     # accessing account details
     print('leverage {}'.format(context.account.leverage))
     print('net leverage {}'.format(context.account.net_leverage))
-    print('available funds {}'.format(context.account.available_funds))
+    print('available cash {}'.format(context.account.available_funds))
     print('total positions exposure {}'.format(context.account.total_positions_exposure))
     
     print('performance data columns...')
