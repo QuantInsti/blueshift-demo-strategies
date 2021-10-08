@@ -58,7 +58,7 @@ def analyze(context, perf):
     positions = context.portfolio.positions
     print('portfolio_value {}, cash {}'.format(portfolio_value, cash))
 
-    for asset, position in positions.iteritems():
+    for asset, position in positions.items():
         print('Symbol {}, cost basis {}'.format
               (asset.symbol, position.cost_basis))
 

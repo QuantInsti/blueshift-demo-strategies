@@ -71,7 +71,6 @@ def generate_signals(context, data):
     p = context.params['percentile']
     rsi_factor = pipeline_results
     candidates = rsi_factor[rsi_factor > 0].dropna().sort_values('rsi')
-    print(candidates)
     n = int(len(candidates)*p)
 
     if n == 0:
