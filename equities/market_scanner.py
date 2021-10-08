@@ -27,8 +27,11 @@ def initialize(context):
     context.params = {'lookback':12, 'min_volume':1E7
                       }
     
-    schedule_function(strategy, date_rules.every_day(), 
-            time_rules.market_open(minutes=30))
+#    schedule_function(strategy, date_rules.every_day(), 
+#            time_rules.market_open(minutes=30))
+    
+    schedule_function(strategy, date_rules.month_start(), 
+            time_rules.market_close(minutes=1))
 
     attach_pipeline(make_strategy_pipeline(context), 
             name='strategy_pipeline')
