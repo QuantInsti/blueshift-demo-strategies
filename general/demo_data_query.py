@@ -1,71 +1,39 @@
-'''
-    Title: Demo Strategy for querying the data object
-    Description: This is a demo strategy to show how the APIs on the data objects can be
-        used for current date-time, current price data bar as well as historical data.
-    Asset class: All
-    Dataset: All (example shows NSE Minute data-set)
-'''
 
-from blueshift.api import(  symbol,
-                            get_datetime,
-                            order_target_percent,
-                            schedule_function,
-                            date_rules,
-                            time_rules,
-                            attach_pipeline,
-                            pipeline_output,
-                            set_commission,
-                            set_slippage,
-                            get_open_orders,
-                            cancel_order
-                       )
+from blueshift.api import symbol
 
 def initialize(context):
-    '''
-        A function to define things to do at the start of the strategy
-    '''
-    # universe selection
-    context.securities = [symbol('NIFTY-I'), symbol('BANKNIFTY-I')]
+    context.universe = [symbol("AAPL"), symbol("MSFT")]
 
 def before_trading_start(context, data):
-    '''
-        A function to defines things to do at before market open
-    '''
-    # current simulation date-time
-    print('current simulation time {}'.format(get_datetime()))
+    print('#'*20, 'current', '#'*20)
+    px1 = data.current(context.universe[0], 'close')
+    px2 = data.current(context.universe[0], ['open','close'])
+    px3 = data.current(context.universe, 'close')
+    px4 = data.current(context.universe, ['open','close'])
 
-    # current simulation bar
-    current_data = data.current(context.securities[0],'close')  # returns float
-    current_data = data.current(context.securities,'close')  # returns series
-    current_data = data.current(context.securities[0],['open','close'])  # returns series
-    current_data = data.current(context.securities,['open','high','low','close','volume']) # returns dataframe
-    print(type(current_data)) # print the return type
-    print(current_data) # print the current bar
-    print(current_data[context.securities[0]])  # subset on securities and print
-    print(current_data['close'])    # subset on field and prnt
-    print(current_data.loc[context.securities[0],'close']) # subset on both
+    print(px1)
+    print('-'*40)
+    print(px2)
+    print('-'*40)
+    print(px3)
+    print('-'*40)
+    print(px4)
 
-    # historical simulation bars
-    historical_data = data.history(context.securities[0],'close',3,'1m') # series
-    historical_data = data.history(context.securities[0],['open','close'],3,'1m') # dataframe
-    historical_data = data.history(context.securities,'close',3,'1m') # dataframe
-    historical_data = data.history(context.securities,['open','close'],3,'1m') # panel
-    print(type(historical_data))    # print data type
-    print(historical_data)  # print data
-    
-    # sub set dataframe
-    print(historical_data[context.securities[0]])   # subset dataframe on security
-    
-    # subset panel data along the securities axis (axis)
-    print(historical_data.xs(context.securities[0]))  # subset panel on securities
-    print(historical_data.xs(context.securities[0])['close']) # subset panel on securities and then field
-    
-    # subset panel data along the field axis (item axis)
-    print(historical_data['close']) # subset panel on field
-    print(historical_data['close'][context.securities[0]])  # subset panel on field and then securities
-    
-    # converting series data to numpy array (useful for talib functions)
-    px_values = historical_data['close'][context.securities[0]].values
-    print(type(px_values))
-    print(px_values.shape)
-    print(px_values)
+    print('#'*20, 'history', '#'*20)
+    px1 = data.history(context.universe[0], "close", 3, "1m")
+    px2 = data.history(context.universe[0], ['open','close'], 3, "1m")
+    px3 = data.history(context.universe, "close", 3, "1m")
+    px4 = data.history(context.universe, ["open","close"], 3, "1m")
+
+    print(px1)
+    print('-'*40)
+    print(px2)
+    print('-'*40)
+    print(px3)
+    print('-'*40)
+    print(px4)
+    print('-'*40)
+    print(px4.xs(context.universe[0]))
+    print('-'*40)
+    print(px4['close'])
+
