@@ -32,7 +32,7 @@ def before_trading_start(context, data):
         A function to defines things to do at before market open
     '''
     # current simulation date-time
-    print('current simulation time {}'.format(data.current_dt))
+    print('current simulation time {}'.format(get_datetime()))
 
     # current simulation bar
     current_data = data.current(context.securities[0],'close')  # returns float
