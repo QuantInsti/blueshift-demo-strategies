@@ -4,9 +4,9 @@
         portfolio weights every month at month start.
     Style tags: Systematic
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
-    Dataset: NYSE Daily or NYSE Minute
+    Broker: US Equities
 """
-from blueshift.api import(    symbol,
+from blueshift.api import(  symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,

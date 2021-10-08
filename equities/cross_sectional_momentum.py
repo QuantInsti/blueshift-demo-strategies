@@ -4,7 +4,7 @@
                 and go long (short) the top (bottom) n-percentile
     Style tags: Momentum
     Asset class: Equities, Futures, ETFs, Currencies
-    Dataset: All
+    Dataset: All equities
 """
 from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 
