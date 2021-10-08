@@ -4,7 +4,7 @@
     Run this for any dataset for a couple of days and head to the 
     Logs tab on the ouput to see the results.
 """
-from zipline.api import (get_datetime, schedule_function, 
+from blueshift.api import (get_datetime, schedule_function, 
                         date_rules, time_rules)
 
 def initialize(context):

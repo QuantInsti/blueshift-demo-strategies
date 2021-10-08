@@ -11,7 +11,7 @@ from blueshift_library.technicals.indicators import bollinger_band, doji
 
 # Zipline
 from blueshift.finance import commission, slippage
-from blueshift.api import(    symbol,
+from blueshift.api import(  symbol,
                             order_target_percent,
                             set_commission,
                             set_slippage,
@@ -112,6 +112,9 @@ def signal_function(px, params, last_signal):
     """
     ind1 = doji(px)
     upper, mid, lower = bollinger_band(px.close.values,params['BBands_period'])
+    if upper - lower == 0:
+        return 0
+    
     last_px = px.close.values[-1]
     dist_to_upper = 100*(upper - last_px)/(upper - lower)
 

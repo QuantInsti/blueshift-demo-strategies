@@ -5,8 +5,8 @@
     Asset class: All
     Dataset: All (example shows NSE Minute data-set)
 '''
-# Zipline APIs
-from zipline.api import(    symbol,
+
+from blueshift.api import(  symbol,
                             get_datetime,
                             order_target_percent,
                             schedule_function,
@@ -56,9 +56,9 @@ def handle_data(context, data):
     # sub set dataframe
     print(historical_data[context.securities[0]])   # subset dataframe on security
     
-    # subset panel data along the securities axis (minor axis)
-    print(historical_data.minor_xs(context.securities[0]))  # subset panel on securities
-    print(historical_data.minor_xs(context.securities[0])['close']) # subset panel on securities and then field
+    # subset panel data along the securities axis (axis)
+    print(historical_data.xs(context.securities[0]))  # subset panel on securities
+    print(historical_data.xs(context.securities[0])['close']) # subset panel on securities and then field
     
     # subset panel data along the field axis (item axis)
     print(historical_data['close']) # subset panel on field

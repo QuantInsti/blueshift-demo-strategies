@@ -1,15 +1,11 @@
 """
-    Title: Buy and hold strategy
-    Description: This is a long only strategy which rebalces the 
+    Title: Buy and Hold (NYSE)
+    Description: This is a long only strategy which rebalances the 
         portfolio weights every month at month start.
     Style tags: Systematic
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
-    Dataset: NSE Daily or NSE Minute
-    
-    zipline:25s
-    blueshift: 1.08s
+    Dataset: NYSE Daily or NYSE Minute
 """
-
 from blueshift.api import(    symbol,
                             order_target_percent,
                             schedule_function,
@@ -24,11 +20,17 @@ def initialize(context):
     
     # universe selection
     context.long_portfolio = [
-                               symbol('ASIANPAINT'),
-                               symbol('TCS')
+                               symbol('AMZN'),
+                               symbol('AAPL'),
+                               symbol('WMT'),
+                               symbol('MU'),
+                               symbol('BAC'),
+                               symbol('KO'),
+                               symbol('BA'),
+                               symbol('AXP')
                              ]
     
-    # Call rebalance function on the first trading day of each month 2.5 hours before market close
+    # Call rebalance function on the first trading day of each month after 2.5 hours from market open
     schedule_function(rebalance,
                     date_rules.month_start(days_offset=0),
                     time_rules.market_close(hours=2, minutes=30))
@@ -42,4 +44,4 @@ def rebalance(context,data):
 
     # Position 50% of portfolio to be long in each security
     for security in context.long_portfolio:
-        order_target_percent(security, 0.5)         
+        order_target_percent(security, 1.0/10)         

@@ -15,9 +15,8 @@
 import numpy as np
 from blueshift_library.technicals.indicators import bollinger_band, ema
 
-# Zipline
-from zipline.finance import commission, slippage
-from zipline.api import(    symbol,
+from blueshift.finance import commission, slippage
+from blueshift.api import(  symbol,
                             order_target_percent,
                             set_commission,
                             set_slippage,
@@ -126,6 +125,9 @@ def signal_function(px, params):
         The main trading logic goes here, called by generate_signals above
     """
     upper, mid, lower = bollinger_band(px,params['BBands_period'])
+    if upper - lower:
+        return 0
+    
     ind2 = ema(px, params['SMA_period_short'])
     ind3 = ema(px, params['SMA_period_long'])
     last_px = px[-1]

@@ -10,9 +10,9 @@
 """
 import numpy as np
 
-from zipline.pipeline import CustomFilter, CustomFactor
-from zipline.pipeline.data import EquityPricing
-ENGINE = 'zipline'
+from blueshift.pipeline import CustomFilter, CustomFactor
+from blueshift.pipeline.data import EquityPricing
+ENGINE = 'blueshift'
     
 def average_volume_filter(lookback, amount):
     """

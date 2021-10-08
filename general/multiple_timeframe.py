@@ -6,8 +6,7 @@
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
     Dataset: NSE Minute
 """
-# Zipline
-from zipline.api import(    symbol,
+from blueshift.api import(  symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,

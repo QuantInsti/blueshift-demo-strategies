@@ -9,6 +9,7 @@
 from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 
 from blueshift.pipeline import Pipeline
+from blueshift.errors import NoFurtherDataError
 from blueshift.api import(
                             order_target_percent,
                             schedule_function,
@@ -16,7 +17,7 @@ from blueshift.api import(
                             time_rules,
                             attach_pipeline,
                             pipeline_output,
-                            get_datetime,
+                            get_datetime
                        )
 
 def initialize(context):
@@ -26,15 +27,15 @@ def initialize(context):
     # The context variables can be accessed by other methods
     context.params = {'lookback':12,
                       'percentile':0.05,
-                      'min_volume':1E7
+                      'min_volume':1E8
                       }
-
+    
     # Call rebalance function on the first trading day of each month
-    schedule_function(strategy, date_rules.month_start(),
+    schedule_function(strategy, date_rules.month_start(), 
             time_rules.market_close(minutes=1))
 
     # Set up the pipe-lines for strategies
-    attach_pipeline(make_strategy_pipeline(context),
+    attach_pipeline(make_strategy_pipeline(context), 
             name='strategy_pipeline')
 
 def strategy(context, data):
@@ -50,7 +51,7 @@ def make_strategy_pipeline(context):
 
     # Set the volume filter
     volume_filter = average_volume_filter(lookback, v)
-
+    
     # compute past returns
     momentum = period_returns(lookback)
     pipe.add(momentum,'momentum')
@@ -61,17 +62,17 @@ def make_strategy_pipeline(context):
 def generate_signals(context, data):
     try:
         pipeline_results = pipeline_output('strategy_pipeline')
-    except:
+    except NoFurtherDataError:
         context.long_securities = []
         context.short_securities = []
         return
-
+    
     p = context.params['percentile']
     momentum = pipeline_results.dropna().sort_values('momentum')
     n = int(len(momentum)*p)
 
     if n == 0:
-        print("{}, no signals".format(data.get_datetime()))
+        print("{}, no signals".format(get_datetime()))
         context.long_securities = []
         context.short_securities = []
 
@@ -83,7 +84,7 @@ def rebalance(context,data):
     n = len(context.long_securities)
     if n < 1:
         return
-
+        
     weight = 0.5/n
 
     # square off old positions if any

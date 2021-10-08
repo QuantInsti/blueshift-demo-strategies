@@ -9,8 +9,7 @@ import numpy as np
 from blueshift_library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
 
 
-# Zipline
-from zipline.api import(    symbol,
+from blueshift.api import(    symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,
@@ -50,13 +49,17 @@ def pair_trading_strategy(context,data):
     try:
         # Get the historic data for the stocks pair
         prices = data.history(  assets = [context.x, context.y],
-                                fields = "price",
-                                bar_count = context.lookback,
+                                fields = "close",
+                                nbars = context.lookback,
                                 frequency = "1d"
                              )
     except:
         return
-
+    
+    prices = prices.dropna()
+    if len(prices) < 5:
+        return
+    
     # Take log of the prices
     prices = np.log(prices)
 

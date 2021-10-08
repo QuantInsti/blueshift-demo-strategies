@@ -1,23 +1,19 @@
 """
-    Title: Intraday Technical Strategies
-    Description: This is a long short strategy based on moving
-        average signals. We also square off all positions at the end
-        of the trading day to avoid any roll-over costs. The trade 
-        size is fixed - mini lotsize (1000) multiplied by a leverage. 
-        The leverage is a parameter, defaults to 1. Minimum capital 1000.
+    Title: Relative Strength Index (RSI) Strategy (Forex)
+    Description: This is a long short strategy based on RSI and moving average
+        dual signals. We also square off all positions at the end of the
+        day to avoid any roll-over costs. The trade size is fixed - 
+        mini lotsize (1000) multiplied by a leverage. The leverage is a 
+        parameter, defaults to 1. Minimum capital 1000.
     Style tags: Momentum, Mean Reversion
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: FX Minute
 """
-from blueshift_library.technicals.indicators import ema
+from blueshift_library.technicals.indicators import rsi, ema
 from blueshift_library.utils.utils import square_off
 
-# Zipline
-from zipline.finance import commission, slippage
-from zipline.api import(    symbol,
+from blueshift.api import(    symbol,
                             order_target,
-                            set_commission,
-                            set_slippage,
                             schedule_function,
                             date_rules,
                             time_rules,
@@ -36,15 +32,15 @@ def initialize(context):
 
     # universe selection
     context.securities = [
-                               symbol('FXCM:AUD/USD'),
-                               symbol('FXCM:EUR/CHF'),
-                               symbol('FXCM:EUR/JPY'),
-                               symbol('FXCM:EUR/USD'),
-                               symbol('FXCM:GBP/USD'),
-                               symbol('FXCM:NZD/USD'),
-                               symbol('FXCM:USD/CAD'),
-                               symbol('FXCM:USD/CHF'),
-                               symbol('FXCM:USD/JPY'),
+                               symbol('AUD/USD'),
+                               symbol('EUR/CHF'),
+                               symbol('EUR/JPY'),
+                               symbol('EUR/USD'),
+                               symbol('GBP/USD'),
+                               symbol('NZD/USD'),
+                               symbol('USD/CAD'),
+                               symbol('USD/CHF'),
+                               symbol('USD/JPY'),
                              ]
 
     # define strategy parameters
@@ -66,10 +62,6 @@ def initialize(context):
     # variables to track signals and target portfolio
     context.signals = dict((security,0) for security in context.securities)
     context.target_position = dict((security,0) for security in context.securities)
-
-    # set trading cost and slippage to zero
-    set_commission(fx=commission.PipsCost(cost=context.params['pip_cost']))
-    set_slippage(fx=slippage.FixedSlippage(0.00))
 
     # set a timeout for trading
     schedule_function(stop_trading,
@@ -158,12 +150,13 @@ def signal_function(px, params):
     """
         The main trading logic goes here, called by generate_signals above
     """
+    ind1 = rsi(px, params['RSI_period'])
     ind2 = ema(px, params['SMA_period_short'])
     ind3 = ema(px, params['SMA_period_long'])
 
-    if ind2-ind3 > 0:
+    if ind1 > 60 and ind2-ind3 > 0:
         return -1
-    elif ind2-ind3 <0:
+    elif ind1 < 30 and ind2-ind3 <0:
         return 1
     else:
         return 0

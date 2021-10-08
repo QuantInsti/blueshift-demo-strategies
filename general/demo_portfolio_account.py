@@ -3,39 +3,54 @@
     Description: A demo strategy to explain how to access algo states like portfolio 
         details and account statistics
     Asset class: All
-    Dataset: NSE daily data-set
+    Dataset: US Equities
     
     Run this example for a few days (say two or three days) with the 
     NSE daily data set and examine the output in the Logs tab.
 """
-# Zipline
-from zipline.api import(    symbol,
-                            get_datetime,
+from blueshift.api import(  symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,
                             time_rules,
-                            attach_pipeline,
-                            pipeline_output,
-                            set_commission,
-                            set_slippage,
-                            get_open_orders,
-                            cancel_order
+                            get_datetime,
                        )
 
 def initialize(context):
     """
         A function to define things to do at the start of the strategy
     """
+    
     # universe selection
-    context.securities = [symbol('ACC'), symbol('MARUTI')]
+    context.universe = [
+                               symbol('AMZN'),
+                               symbol('FB'),
+                               symbol('AAPL'),
+                               symbol('GOOGL'),
+                               symbol('NFLX'),
+                             ]
+    
+    # Call rebalance function on the first trading day of each month after 2.5 hours from market open
+    schedule_function(rebalance,
+                    date_rules.month_start(days_offset=0),
+                    time_rules.market_close(hours=2, minutes=30))
 
-def handle_data(context, data):
+
+def rebalance(context,data):
     """
-        A function to define things to do at every bar
+        A function to rebalance the portfolio, passed on to the call
+        of schedule_function above.
+    """
+
+    for security in context.universe:
+        order_target_percent(security, 1.0/10)
+
+def analyze(context, perf):
+    """
+        Called at the end of strategy run.
     """
     # current simulation date-time
-    print('{} {}'.format(data.current_dt.date(), 30*'#'))
+    print('{} {}'.format(get_datetime().date(), 30*'#'))
 
     # accessing portfolio details
     portfolio_value = context.portfolio.portfolio_value
@@ -43,16 +58,15 @@ def handle_data(context, data):
     positions = context.portfolio.positions
     print('portfolio_value {}, cash {}'.format(portfolio_value, cash))
 
-    for p, pos_data in positions.iteritems():
-        print('Symbol {}, cost basis {}'.format(p.symbol, pos_data.cost_basis))
+    for asset, position in positions.iteritems():
+        print('Symbol {}, cost basis {}'.format
+              (asset.symbol, position.cost_basis))
 
     # accessing account details
     print('leverage {}'.format(context.account.leverage))
     print('net leverage {}'.format(context.account.net_leverage))
     print('available funds {}'.format(context.account.available_funds))
     print('total positions exposure {}'.format(context.account.total_positions_exposure))
-
-    # ordering function
-    num_secs = len(context.securities)
-    for security in context.securities:
-        order_target_percent(security, 1.0/num_secs)
+    
+    print('performance data columns...')
+    print(perf.columns)

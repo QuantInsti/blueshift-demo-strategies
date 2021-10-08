@@ -13,9 +13,9 @@
 from blueshift_library.pipelines.pipelines import average_volume_filter, technical_factor
 from blueshift_library.technicals.indicators import rsi, ema
 
-from zipline.pipeline import Pipeline
-from zipline.errors import NoFurtherDataError
-from zipline.api import(    schedule_function,
+from blueshift.pipeline import Pipeline
+from blueshift.errors import NoFurtherDataError
+from blueshift.api import(  schedule_function,
                             date_rules,
                             time_rules,
                             attach_pipeline,
