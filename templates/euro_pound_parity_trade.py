@@ -6,7 +6,7 @@
         Minimum capital 10,000.
     Style tags: Mean-reversion, Stat-Arb
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
-    Dataset: FX Minute
+    Broker: Forex
 """
 import numpy as np
 from blueshift_library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders

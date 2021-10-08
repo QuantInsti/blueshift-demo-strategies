@@ -147,7 +147,7 @@ class Advisor():
         except:
             try:
                 self.last_px[security] = self.current_px[security]
-                px = prices.minor_xs(security)
+                px = prices.xs(security)
                 self.current_px[security] = px['close'].values[-1]
             except:
                 raise ValueError('Unknown type of historical price data')

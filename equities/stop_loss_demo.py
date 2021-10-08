@@ -10,7 +10,7 @@
         this with the Bollinger band demo strategy.
     Style tags: Systematic Fundamental
     Asset class: Equities, Futures, ETFs and Currencies
-    Dataset: NSE Minute
+    Broker: NSE
 """
 import numpy as np
 from blueshift_library.technicals.indicators import bollinger_band, ema

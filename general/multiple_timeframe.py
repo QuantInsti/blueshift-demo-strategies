@@ -42,21 +42,21 @@ def rebalance(context,data):
 
     for security in context.long_portfolio:
         # aggregate 15 minutes, all OHLCV columns
-        df = to_period(prices.minor_xs(security), period='15T')
+        df = to_period(prices.xs(security), period='15T')
         print(df.tail())
 
     print('-'*50)
     
     for security in context.long_portfolio:
         # aggregate 30 minutes, only two columns
-        df = to_period(prices.minor_xs(security)[['open','close']], period='30T')
+        df = to_period(prices.xs(security)[['open','close']], period='30T')
         print(df.tail())
 
     print('-'*50)
 
     for security in context.long_portfolio:
         # aggregate hourly, only a single column
-        df = to_period(prices.minor_xs(security)['close'], period='60T')
+        df = to_period(prices.xs(security)['close'], period='60T')
         print(df.tail())
 
 def to_period(price, period):

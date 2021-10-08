@@ -1,4 +1,13 @@
-
+"""
+    Title: Demo strategy for Algo states
+    Description: A demo strategy to explain how to access algo states like portfolio 
+        details and account statistics
+    Asset class: All
+    Dataset: US Equities
+    
+    Run this example for a few days (say two or three days) with the 
+    NSE daily data set and examine the output in the Logs tab.
+"""
 from blueshift.api import symbol
 
 def initialize(context):

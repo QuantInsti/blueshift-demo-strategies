@@ -4,7 +4,7 @@
                 the positive (negative) n-percentile
     Style tags: Momentum
     Asset class: Equities, Futures, ETFs, Currencies
-    Dataset: All
+    Broker: NSE/ US Equities
 """
 from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 

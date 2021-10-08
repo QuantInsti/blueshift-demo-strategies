@@ -4,7 +4,7 @@
         portfolio weights every month at month start.
     Style tags: Macro
     Asset class: Currencies
-    Dataset: FX Minute
+    Broker: Forex
 """
 from blueshift.api import(  symbol,
                             order_target_percent,
