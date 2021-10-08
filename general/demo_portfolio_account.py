@@ -59,8 +59,8 @@ def analyze(context, perf):
     print('portfolio_value {}, cash {}'.format(portfolio_value, cash))
 
     for asset, position in positions.items():
-        print('Symbol {}, cost basis {}'.format
-              (asset.symbol, position.cost_basis))
+        print('Symbol {}, amount {}'.format
+              (asset.symbol, position.quantity))
 
     # accessing account details
     print('leverage {}'.format(context.account.leverage))
