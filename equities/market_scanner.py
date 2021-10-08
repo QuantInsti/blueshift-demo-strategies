@@ -27,9 +27,6 @@ def initialize(context):
     context.params = {'lookback':12, 'min_volume':1E7
                       }
     
-#    schedule_function(strategy, date_rules.every_day(), 
-#            time_rules.market_open(minutes=30))
-    
     schedule_function(strategy, date_rules.month_start(), 
             time_rules.market_close(minutes=1))
 
@@ -48,13 +45,13 @@ def make_strategy_pipeline(context):
     
     # compute past returns
     rsi_factor = technical_factor(126, rsi, 14)
-    #ema20_factor = technical_factor(126, ema, 20)
-    #ema50_factor = technical_factor(126, ema, 50)
+    ema20_factor = technical_factor(126, ema, 20)
+    ema50_factor = technical_factor(126, ema, 50)
     
     # add to pipelines
     pipe.add(rsi_factor,'rsi')
-    #pipe.add(ema20_factor,'ema20')
-    #pipe.add(ema50_factor,'ema50')
+    pipe.add(ema20_factor,'ema20')
+    pipe.add(ema50_factor,'ema50')
     pipe.set_screen(volume_filter)
 
     return pipe
