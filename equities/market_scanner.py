@@ -63,10 +63,10 @@ def generate_signals(context, data):
         return
     
     # use other columns to print other indicators scanning results
-    rsi = results.rsi.sort_values(ascending=True)
+    results = results.sort_values('rsi',ascending=True)
     print('{}{}'.format(get_datetime(),'-'*30))
-    print(rsi[:5])
-    print(rsi[-5:])
+    print(results.head())
+    print(results.tail())
 
 def rebalance(context,data):
     pass
