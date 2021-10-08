@@ -45,13 +45,13 @@ def make_strategy_pipeline(context):
     
     # compute past returns
     rsi_factor = technical_factor(126, rsi, 14)
-    ema20_factor = technical_factor(126, ema, 20)
-    ema50_factor = technical_factor(126, ema, 50)
+    #ema20_factor = technical_factor(126, ema, 20)
+    #ema50_factor = technical_factor(126, ema, 50)
     
     # add to pipelines
     pipe.add(rsi_factor,'rsi')
-    pipe.add(ema20_factor,'ema20')
-    pipe.add(ema50_factor,'ema50')
+    #pipe.add(ema20_factor,'ema20')
+    #pipe.add(ema50_factor,'ema50')
     pipe.set_screen(volume_filter)
 
     return pipe
@@ -60,7 +60,6 @@ def generate_signals(context, data):
     try:
         results = pipeline_output('strategy_pipeline')
     except:
-        print('no data for {}'.format(get_datetime()))
         return
     
     # use other columns to print other indicators scanning results
