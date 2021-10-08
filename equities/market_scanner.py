@@ -41,7 +41,7 @@ def make_strategy_pipeline(context):
     pipe = Pipeline()
 
     # Set the volume filter, 126 days is roughly 6 month daily data
-    volume_filter = average_volume_filter(126, 1E7)
+    volume_filter = average_volume_filter(126, 1E8)
     
     # compute past returns
     rsi_factor = technical_factor(126, rsi, 14)
@@ -59,7 +59,7 @@ def make_strategy_pipeline(context):
 def generate_signals(context, data):
     try:
         results = pipeline_output('strategy_pipeline')
-    except NoFurtherDataError:
+    except:
         print('no data for {}'.format(get_datetime()))
     
     # use other columns to print other indicators scanning results

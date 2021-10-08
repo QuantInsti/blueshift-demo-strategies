@@ -10,7 +10,7 @@
 from blueshift_library.technicals.indicators import fibonacci_support, adx
 
 from blueshift.finance import commission, slippage
-from blueshift.api import(    symbol,
+from blueshift.api import(  symbol,
                             order_target_percent,
                             set_commission,
                             set_slippage,
