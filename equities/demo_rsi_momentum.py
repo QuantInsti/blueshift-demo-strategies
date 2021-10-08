@@ -4,11 +4,10 @@
         dual signals
     Style tags: Momentum, Mean Reversion
     Asset class: Equities, Futures, ETFs and Currencies
-    Dataset: NSE Minute
+    Broker: NSE
 """
 from blueshift_library.technicals.indicators import rsi, ema
 
-# Zipline
 from zipline.finance import commission, slippage
 from zipline.api import(    symbol,
                             order_target_percent,

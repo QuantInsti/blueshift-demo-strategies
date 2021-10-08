@@ -5,7 +5,7 @@
         with the momentum.
     Style tags: momentum and mean reversion
     Asset class: Equities, Futures, ETFs and Currencies
-    Dataset: NSE
+    Broker: NSE
 """
 from blueshift_library.technicals.indicators import bollinger_band, doji
 

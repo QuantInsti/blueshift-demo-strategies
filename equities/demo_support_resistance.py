@@ -5,10 +5,10 @@
         near resistance if confirmed by ADX
     Style tags: momentum and mean reversion
     Asset class: Equities, Futures, ETFs and Currencies
-    Dataset: NSE Minute
+    Broker: NSE
 """
 from blueshift_library.technicals.indicators import fibonacci_support, adx
-# Zipline
+
 from zipline.finance import commission, slippage
 from zipline.api import(    symbol,
                             order_target_percent,
@@ -100,7 +100,7 @@ def generate_signals(context, data):
         return
 
     for security in context.securities:
-        px = price_data.minor_xs(security)
+        px = price_data.xs(security)
         context.signals[security] = signal_function(px, context.params,
             context.signals[security])
 

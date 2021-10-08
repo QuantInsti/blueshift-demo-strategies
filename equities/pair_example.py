@@ -3,7 +3,7 @@
     Description: This is a sample Pairs Trading strategy
     Style tags: Mean-reversion, Stat-Arb
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
-    Dataset: NSE Daily
+    Broker: NSE
 """
 import numpy as np
 from blueshift_library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders

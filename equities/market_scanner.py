@@ -8,7 +8,7 @@
         encounter difficulties.
     Style tags: Technical indicator scanner
     Asset class: Equities, Futures, ETFs, Currencies
-    Dataset: DAILY
+    Broker: NSE/ US Equities
 """
 from blueshift_library.pipelines.pipelines import average_volume_filter, technical_factor
 from blueshift_library.technicals.indicators import rsi, ema
