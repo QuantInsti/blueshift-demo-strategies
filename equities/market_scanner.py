@@ -61,6 +61,7 @@ def generate_signals(context, data):
         results = pipeline_output('strategy_pipeline')
     except:
         print('no data for {}'.format(get_datetime()))
+        return
     
     # use other columns to print other indicators scanning results
     rsi = results.rsi.sort_values(ascending=True)
