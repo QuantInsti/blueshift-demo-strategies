@@ -1,7 +1,7 @@
 """
     test the call order of different API functions
 """
-from zipline.api import (get_datetime, schedule_function, 
+from blueshift.api import (get_datetime, schedule_function, 
                         date_rules, time_rules)
 
 def initialize(context):

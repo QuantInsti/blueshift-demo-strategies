@@ -11,9 +11,9 @@ from blueshift_library.technicals.indicators import volatility
 from blueshift_library.utils.utils import square_off
 import numpy as np
 
-# Zipline
-from zipline.finance import commission, slippage
-from zipline.api import(    symbol,
+
+from blueshift.finance import commission, slippage
+from blueshift.api import(    symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,
@@ -47,7 +47,7 @@ def calculate_trading_metrics(context, data):
     prices = data.history(context.universe, ['open','high','low','close'], 
                             context.lookback_data, '1d')
     for stock in context.universe:
-        px = prices.minor_xs(stock)
+        px = prices.xs(stock)
         px = px.dropna()
         current = px.iloc[-1]
         last = px.iloc[-2]

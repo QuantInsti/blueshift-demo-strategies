@@ -8,9 +8,9 @@
 """
 from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
 
-from zipline.pipeline import Pipeline
-from zipline.errors import NoFurtherDataError
-from zipline.api import(
+from blueshift.pipeline import Pipeline
+from blueshift.errors import NoFurtherDataError
+from blueshift.api import(
                             order_target_percent,
                             schedule_function,
                             date_rules,

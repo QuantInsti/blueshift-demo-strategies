@@ -28,7 +28,7 @@
 
 <br/>
 
-[Blueshift](https://quantra-blueshift.quantinsti.com/) is a systematic trading development platform with built-in market data covernig multiple markets and asset classes, powered by [Zipline](http://www.zipline.io/)
+[Blueshift](https://quantra-blueshift.quantinsti.com/) is a systematic trading development platform with built-in market data covernig multiple markets and asset classes.
 
 This repository lists a number of demo strategies to show the use cases of 
 Blueshift development platform. 

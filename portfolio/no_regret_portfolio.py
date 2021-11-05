@@ -11,9 +11,8 @@ import pandas as pd
 import numpy as np
 import bisect
 
-# Zipline
-from zipline.finance import commission, slippage
-from zipline.api import(    symbol,
+from blueshift.finance import commission, slippage
+from blueshift.api import(    symbol,
                             get_datetime,
                             order_target_percent,
                             schedule_function,
