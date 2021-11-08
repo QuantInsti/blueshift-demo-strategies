@@ -7,7 +7,7 @@
         leverage is a parameter, defaults to 1. Minimum capital 1000.
     Style tags: Momentum, Mean Reversion
     Asset class: Equities, Futures, ETFs and Currencies
-    Broker: Forex
+    Dataset: Forex
 """
 from blueshift_library.technicals.indicators import bollinger_band
 from blueshift_library.utils.utils import square_off

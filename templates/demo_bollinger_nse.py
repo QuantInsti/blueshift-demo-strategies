@@ -4,7 +4,7 @@
         and SMA dual signals
     Style tags: Systematic Fundamental
     Asset class: Equities, Futures, ETFs and Currencies
-    Broker: NSE
+    Dataset: NSE
 """
 from blueshift_library.technicals.indicators import bollinger_band, ema
 
