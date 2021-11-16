@@ -9,7 +9,7 @@
 <div align="center">
   <h3>
     <a href="https://blueshift.quantinsti.com">
-      Website
+      Platform
     </a>
     <span> | </span>
     <a href="https://blueshift.quantinsti.com/api-docs/introduction.html">
