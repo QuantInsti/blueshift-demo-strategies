@@ -12,12 +12,16 @@
       Website
     </a>
     <span> | </span>
-    <a href="https://quantra.quantinsti.com/courses">
-      Quantra
+    <a href="https://blueshift.quantinsti.com/api-docs/introduction.html">
+      APIs
     </a>
     <span> | </span>
     <a href="https://blueshift.quantinsti.com/docs/dataset">
-      Dataset
+      Datasets
+    </a>
+    <span> | </span>
+    <a href="https://quantra.quantinsti.com/courses">
+      Learn
     </a>
     <span> | </span>
     <a href="https://www.quantinsti.com/blog/">
