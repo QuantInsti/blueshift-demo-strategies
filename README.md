@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://quantra-blueshift.quantinsti.com/"><img align="center" src="https://quantra-blueshift.quantinsti.com/static/img/landing/blueshift-logo.png"></a>
+  <a href="https://blueshift.quantinsti.com/"><img align="center" src="https://blueshift.quantinsti.com/static/img/landing/blueshift-logo.svg"></a>
 </p>
 
 <h3 align="center">Blueshift Demo Strategies</h3>
@@ -8,7 +8,7 @@
 
 <div align="center">
   <h3>
-    <a href="https://quantra-blueshift.quantinsti.com">
+    <a href="https://blueshift.quantinsti.com">
       Website
     </a>
     <span> | </span>
@@ -16,7 +16,7 @@
       Quantra
     </a>
     <span> | </span>
-    <a href="https://quantra-blueshift.quantinsti.com/docs/dataset">
+    <a href="https://blueshift.quantinsti.com/docs/dataset">
       Dataset
     </a>
     <span> | </span>
@@ -28,6 +28,6 @@
 
 <br/>
 
-[Blueshift](https://quantra-blueshift.quantinsti.com/) is a systematic trading development platform with built-in market data covernig multiple markets and asset classes.
+[Blueshift](https://blueshift.quantinsti.com/) is a systematic trading development platform with built-in market data covernig multiple markets and asset classes.
 
 This repository lists a number of demo strategies to show the use cases of Blueshift development platform. Note: the strategies here are for demonstration purpose only. Possible improvements include optimizing parameters and improvement in trading costs and slippage, among others.
