@@ -34,7 +34,8 @@ def initialize(context):
     context.lookback = 12*21
     context.offset = 1*21
     context.min_volume = 1E8
-    context.percentile = 0.1
+    context.max_size = 10
+    context.min_size = 5
     context.weight = 0
 
     context.universe = []
@@ -84,9 +85,9 @@ def compute_signal(context,data):
     momentum = pipeline_results
     momentum['z_score'] = momentum['momentum']/momentum['vol']
     candidates = momentum[momentum['z_score'] > 0].dropna().sort_values('z_score')
-    n = int(len(candidates)*context.percentile)
+    n = context.max_size
 
-    if n == 0:
+    if len(candidates) < context.min_size:
         print(f'{get_datetime()}:no securities passed screening.')
 
     context.universe = candidates.index[-n:].tolist()
