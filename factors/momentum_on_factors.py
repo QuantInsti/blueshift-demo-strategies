@@ -11,6 +11,7 @@
 from blueshift_library.pipelines.pipelines import period_returns, technical_factor
 from blueshift_library.technicals.indicators import volatility
 
+from blueshift.errors import NoFurtherDataError
 from blueshift.pipeline import Pipeline, CustomFilter
 from blueshift.api import symbol, sid, order_target_percent, get_datetime
 from blueshift.api import schedule_function, date_rules, time_rules

@@ -108,11 +108,9 @@ def rebalance(context, data):
 
     for asset in context.portfolio.positions:
         if asset not in context.universe and asset != context.hedge:
-            print(f'{get_datetime()}: getting out of {asset}')
             order_target_percent(asset, 0)
 
     for asset in context.universe:
-        print(f'going/ staying long in {asset}')
         order_target_percent(asset, context.weight)
 
     hedge_weight = len(context.universe)*context.weight
