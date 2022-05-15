@@ -12,7 +12,30 @@ import numpy as np
 
 from blueshift.pipeline import CustomFilter, CustomFactor
 from blueshift.pipeline.data import EquityPricing
+from blueshift.pipeline.factors import AverageDollarVolume
+
 ENGINE = 'blueshift'
+
+def select_universe(lookback, size):
+    """
+       Returns a custom filter object for volume-based filtering.
+       
+       Args:
+           lookback (int): lookback window size
+           size (int): Top n assets to return.
+           
+       Returns:
+           A custom filter object
+           
+       Examples::
+           
+           # from library.pipelines.pipelines import select_universe
+           
+           pipe = Pipeline()
+           top_100 = select_universe(252, 100)
+           pipe.set_screen(top_100)
+    """
+    return AverageDollarVolume(window_length=lookback).top(size)
     
 def average_volume_filter(lookback, amount):
     """
@@ -62,11 +85,16 @@ def filter_universe(universe):
            universe_filter = filter_universe(context.universe)
            pipe.set_screen(universe_filter)
     """
+    from blueshift.api import sid
+    
+    universe = frozenset([asset.symbol for asset in universe])
     class FilteredUniverse(CustomFilter):
         inputs = ()
         window_length = 1
         def compute(self,today,assets,out):
-            in_universe = [asset in universe for asset in assets]
+            # we do a sid().symbol here as sid may not be same between
+            # the pipeline store and the active store
+            in_universe = [sid(asset).symbol in universe for asset in assets]
             out[:] = in_universe
     
     return FilteredUniverse()
@@ -91,12 +119,17 @@ def exclude_assets(universe):
            exclude_filter = filter_universe(context.exclude)
            pipe.set_screen(exclude_filter)
     """
+    from blueshift.api import sid
+    
+    universe = frozenset([asset.symbol for asset in universe])
     class FilteredUniverse(CustomFilter):
         inputs = ()
         window_length = 1
  
         def compute(self,today,assets,out):
-            in_universe = [asset not in universe for asset in assets]
+            # we do a sid here as sid().symbol may not be same between
+            # the pipeline store and the active store
+            in_universe = [sid(asset).symbol not in universe for asset in assets]
             out[:] = in_universe
  
     return FilteredUniverse()
