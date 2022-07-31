@@ -115,7 +115,7 @@ def check_entry(context, asset, px):
     size = pos*context.params['leverage']/len(context.universe)
     order_target_percent(asset, size)
     context.entered[asset]=pos
-    set_stoploss(asset, 'PERCENT', 0.05, trailing=True, 
+    set_stoploss(asset, 'PERCENT', 0.005, trailing=True, 
                  on_stoploss=on_exit)
     
 def check_exit(context, asset, px):
