@@ -50,10 +50,6 @@ def initialize(context):
     if not context.params['universe']:
         raise ValueError(f'universe not defined.')
     context.universe = [symbol(sym) for sym in context.params['universe']]
-    
-    # trackers
-    context.entered = {}
-    context.exited = set()
 
     # set trading cost and slippage to zero
     set_commission(commission.PerShare(cost=0.002, min_trade_cost=0.0))
@@ -67,8 +63,11 @@ def initialize(context):
                       time_rules.market_close(minutes=30))
     
 def before_trading_start(context, data):
+    # reset all trackers
     context.entry = True
     context.trade = True
+    context.entered = {}
+    context.exited = set()
 
 def stop_entry(context, data):
     context.entry = False
@@ -97,11 +96,8 @@ def enter_trades(context, data):
         px = ohlc.xs(asset)
         if asset not in context.entered:
             check_entry(context, asset, px)
-        elif asset in context.entered:
+        elif asset not in context.exited:
             check_exit(context, asset, px)
-            
-        context.signals[asset] = signal_function(px, context.params,
-            context.signals[asset])
         
 def check_entry(context, asset, px):
     if not context.entry or not context.trade:
@@ -123,7 +119,7 @@ def check_exit(context, asset, px):
     if not context.trade:
         return
     
-    if asset not in context.entered:
+    if asset not in context.entered or asset in context.exited:
         return
     
     pos = context.entered[asset]
