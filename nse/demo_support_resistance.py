@@ -111,7 +111,7 @@ def check_entry(context, asset, px):
         return
     
     pos = Signal.get_position_size(signal)
-    size = pos*context['leverage']/len(context.universe)
+    size = pos*context.params['leverage']/len(context.universe)
     order_target_percent(size)
     context.entered[asset]=pos
     
