@@ -18,6 +18,7 @@ from blueshift.api import(  symbol,
                             date_rules,
                             time_rules,
                             cancel_order,
+                            set_stoploss,
                        )
 
 
@@ -114,6 +115,8 @@ def check_entry(context, asset, px):
     size = pos*context.params['leverage']/len(context.universe)
     order_target_percent(asset, size)
     context.entered[asset]=pos
+    set_stoploss(asset, 'PERCENT', 0.05, trailing=True, 
+                 on_stoploss=on_exit)
     
 def check_exit(context, asset, px):
     if not context.trade:
@@ -128,6 +131,9 @@ def check_exit(context, asset, px):
         cancel_and_exit(context, asset)
     elif pos < 0 and signal in (Signal.STRONG_BUY, Signal.BUY):
         cancel_and_exit(context, asset)
+        
+def on_exit(context, asset):
+    context.exited.add(asset)
             
 def cancel_and_exit(context, asset):
     orders = context.open_orders_by_asset(asset)
@@ -141,7 +147,7 @@ def cancel_and_exit(context, asset):
     if asset in positions:
         order_target_percent(asset, 0)
         
-    context.exited.add(asset)
+    on_exit(context, asset)
 
 def signal_function(px, params):
     lower, upper = fibonacci_support(px.close.values)
