@@ -17,7 +17,6 @@ from blueshift.api import(  symbol,
                             schedule_function,
                             date_rules,
                             time_rules,
-                            open_orders_by_asset,
                             cancel_order,
                        )
 
@@ -135,7 +134,7 @@ def check_exit(context, asset, px):
         cancel_and_exit(context, asset)
             
 def cancel_and_exit(context, asset):
-    orders = open_orders_by_asset(asset)
+    orders = context.open_orders_by_asset(asset)
     for order_id in orders:
         try:
             cancel_order(order_id)
