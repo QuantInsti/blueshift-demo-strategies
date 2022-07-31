@@ -61,9 +61,9 @@ def initialize(context):
     
     schedule_function(enter_trades, date_rules.every_day(),
                       time_rules.every_nth_minute())
-    schedule_function(stop_entry, date_rules.every_date(),
+    schedule_function(stop_entry, date_rules.every_day(),
                       time_rules.market_close(hours=2))
-    schedule_function(square_off_all, date_rules.every_date(),
+    schedule_function(square_off_all, date_rules.every_day(),
                       time_rules.market_close(minutes=30))
     
 def before_trading_start(context, data):
