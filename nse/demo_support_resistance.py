@@ -157,9 +157,9 @@ def signal_function(px, params):
         return Signal.STRONG_SELL
     elif upper == -1:
         return Signal.STRONG_BUY
-    elif upper > 0.02 and lower > 0 and upper/lower > 3 and ind2 < 20:
-        return Signal.SELL
-    elif lower > 0.02 and upper > 0 and lower/upper > 3 and ind2 < 20:
-        return Signal.BUY
+#    elif upper > 0.02 and lower > 0 and upper/lower > 3 and ind2 < 20:
+#        return Signal.SELL
+#    elif lower > 0.02 and upper > 0 and lower/upper > 3 and ind2 < 20:
+#        return Signal.BUY
     else:
         return Signal.NO_SIGNAL
