@@ -59,7 +59,7 @@ def initialize(context):
     set_commission(commission.PerShare(cost=0.002, min_trade_cost=0.0))
     set_slippage(slippage.FixedSlippage(0.00))
     
-    schedule_function(enter_trades, date_rules.every_date(),
+    schedule_function(enter_trades, date_rules.every_day(),
                       time_rules.every_nth_minute())
     schedule_function(stop_entry, date_rules.every_date(),
                       time_rules.market_close(hours=2))
