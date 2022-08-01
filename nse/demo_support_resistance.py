@@ -94,7 +94,7 @@ def strategy(context, data):
     if not context.trade:
         return
     
-    cols = ['close','volume']
+    cols = ['close','high','low','volume']
     lookback = context.params['intraday_lookback']
     ohlc = data.history(context.universe, cols, lookback, '1m')
 
