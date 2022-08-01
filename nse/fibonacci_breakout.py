@@ -19,6 +19,7 @@ from blueshift.api import(  symbol,
                             time_rules,
                             cancel_order,
                             set_stoploss,
+                            set_takeprofit,
                        )
 
 
@@ -38,15 +39,52 @@ class Signal:
 def initialize(context):
     # strategy parameters
     context.params = {'daily_lookback':20,
-                      'intraday_lookback':60,
-                      'universe':['NIFTY-I','BANKNIFTY-I'],
+                      'universe':'NIFTY-I,BANKNIFTY-I',
                       'stoploss':0.005,
+                      'takeprofit':0.01,
                       'short_sma':10,
                       'long_sma':30,
                       'leverage':2}
     
     if not context.params['universe']:
         raise ValueError(f'universe not defined.')
+    context.params['universe'] = context.params['universe'].split(',')
+    if len(context.params['universe']) > 10:
+        raise ValueError(f'universe can be maximum 10 instruments.')
+    
+    try:
+        assert context.params['daily_lookback'] == int(context.params['daily_lookback'])
+        assert context.params['daily_lookback'] > 10
+        assert context.params['daily_lookback'] <= 200
+    except:
+        msg = 'daily lookback must be integer and greater than 10 and '
+        msg += 'less than or equal to 200.'
+        raise ValueError(msg)
+        
+    try:
+        assert context.params['short_sma'] == int(context.params['short_sma'])
+        assert context.params['long_sma'] == int(context.params['long_sma'])
+        assert context.params['long_sma'] > context.params['short_sma']
+    except:
+        msg = 'volume moving average lookbacks must be integers and '
+        msg += 'long term lookback must be greater than short term lookback.'
+        raise ValueError(msg)
+    else:
+        context.params['intraday_lookback'] = context.params['long_sma']+10
+        
+    try:
+        sl = float(context.params['stoploss'])
+        if sl < 0 or sl > 0.1:raise ValueError()
+    except:
+        'stoploss must be a fraction between 0 to 0.10'
+        raise ValueError(msg)
+    try:
+        tp = float(context.params['takeprofit'])
+        if tp < 0.005 or tp > 0.1:raise ValueError()
+    except:
+        'takeprofit must be a fraction between 0.005 to 0.10'
+        raise ValueError(msg)
+        
     context.universe = [symbol(sym) for sym in context.params['universe']]
 
     # set trading cost and slippage to zero
@@ -123,6 +161,8 @@ def check_entry(context, asset, px):
     set_stoploss(
             asset, 'PERCENT', context.params['stoploss'], trailing=False, 
             on_stoploss=on_exit)
+    set_takeprofit(asset, 'PERCENT', context.params['takeprofit'],
+                   on_takeprofit=on_exit)
         
 def on_exit(context, asset):
     context.exited.add(asset)
