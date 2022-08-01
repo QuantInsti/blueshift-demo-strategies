@@ -41,6 +41,8 @@ def initialize(context):
                       'intraday_lookback':60,
                       'universe':['NIFTY-I','BANKNIFTY-I'],
                       'stoploss':0.005,
+                      'short_sma':10,
+                      'long_sma':30,
                       'leverage':2}
     
     if not context.params['universe']:
@@ -119,7 +121,7 @@ def check_entry(context, asset, px):
     order_target_percent(asset, size)
     context.entered[asset]=pos
     set_stoploss(
-            asset, 'PERCENT', context.params['stoploss'], trailing=True, 
+            asset, 'PERCENT', context.params['stoploss'], trailing=False, 
             on_stoploss=on_exit)
         
 def on_exit(context, asset):
@@ -127,7 +129,9 @@ def on_exit(context, asset):
 
 def signal_function(context, asset, px):
     typical = 0.33*(px.close[-1] + px.high[-1] + px.low[-1])
-    volume_signal = ta.SMA(px.volume, 10)[-1] > ta.SMA(px.volume, 30)[-1]
+    t = context.params['short_sma']
+    T = context.params['long_sma']
+    volume_signal = ta.SMA(px.volume, t)[-1] > ta.SMA(px.volume, T)[-1]
     
     if typical > context.supports[asset][-1] and volume_signal:
         # break-out on the upside
