@@ -59,12 +59,12 @@ def initialize(context):
                       time_rules.market_close(minutes=30))
     
 def generate_supports(context, data):
-    cols = ['open','high','low','close']
+    cols = ['close']
     lookback = context.params['daily_lookback']
     ohlc = data.history(context.universe, cols, lookback, '1d')
     
     for asset in context.universe:
-        px = ohlc.xs(asset)
+        px = ohlc.xs(asset).close
         context.supports[asset] = [min(px) + l*(max(px) - min(px)) \
                           for l in [0,0.236,0.382,0.5,0.618,1]]
     
