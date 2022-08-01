@@ -119,7 +119,7 @@ def check_entry(context, asset, px):
     order_target_percent(asset, size)
     context.entered[asset]=pos
     set_stoploss(
-            asset, 'PERCENT', context.params['stoploss'], trailing=False, 
+            asset, 'PERCENT', context.params['stoploss'], trailing=True, 
             on_stoploss=on_exit)
         
 def on_exit(context, asset):
