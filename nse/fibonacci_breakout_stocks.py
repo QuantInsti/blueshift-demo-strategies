@@ -239,7 +239,7 @@ def strategy(context, data):
             context.universe, cols, context.intraday_lookback, '1m')
 
     for asset in context.universe:
-        px = ohlc.xs[asset]
+        px = ohlc.xs(asset)
         if asset not in context.entered:
             check_entry(context, asset, px)
         
