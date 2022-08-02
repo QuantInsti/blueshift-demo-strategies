@@ -7,8 +7,8 @@
     Asset class: Equity Options
     Dataset: NSE
 """
-from blueshift.api import symbol, order_target
-from blueshift.api import set_stoploss, set_takeprofit, square_off
+from blueshift.api import symbol, order_target, cancel_order
+from blueshift.api import set_stoploss, set_takeprofit
 from blueshift.api import schedule_function, date_rules, time_rules
 
 def initialize(context):
@@ -91,7 +91,11 @@ def enter(context, data):
         order_target(asset,-size)
 
 def close_out(context, data):
-    square_off()
+    for oid in context.open_orders:
+        cancel_order(oid)
+        
+    for asset in context.portfolio.positions:
+        order_target(asset, 0)
             
 def set_targets(context, data):
     if len(context.universe) == len(context.entered):
