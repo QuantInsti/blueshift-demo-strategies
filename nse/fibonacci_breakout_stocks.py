@@ -13,7 +13,7 @@
     Risk: High
     Minimum Capital: 300,000
 """
-import talib as ta
+from blueshift_library.technicals.indicators import bollinger_band
 
 from blueshift.finance import commission, slippage
 from blueshift.api import(  symbol,
@@ -51,8 +51,7 @@ def initialize(context):
                       'stocks':[],
                       'stoploss':0.005,
                       'takeprofit':None,
-                      'short_sma':10,
-                      'long_sma':30,
+                      'bbands_period':30,
                       'num_stocks':5,
                       'universe':100,
                       'filter_lookback':12,
@@ -107,15 +106,14 @@ def initialize(context):
         raise ValueError(msg)
         
     try:
-        assert context.params['short_sma'] == int(context.params['short_sma'])
-        assert context.params['long_sma'] == int(context.params['long_sma'])
-        assert context.params['long_sma'] > context.params['short_sma']
+        assert context.params['bbands_period'] == int(context.params['bbands_period'])
+        assert context.params['bbands_period'] >= 20
+        assert context.params['bbands_period'] <= 200
     except:
-        msg = 'volume moving average lookbacks must be integers and '
-        msg += 'long term lookback must be greater than short term lookback.'
+        msg = 'bbands_period must be integers and between 20 to 200 (minutes).'
         raise ValueError(msg)
     else:
-        context.intraday_lookback = context.params['long_sma']*2
+        context.intraday_lookback = context.params['bbands_period']*2
         
     if context.params['stoploss']:
         try:
@@ -151,7 +149,8 @@ def initialize(context):
     if context.pipeline:
         attach_pipeline(make_strategy_pipeline(context), 
             name='strategy_pipeline')
-        
+    
+    set_long_only()
     msg = f'Starting strategy {context.strategy_name} '
     msg += f'with parameters {context.params}'
     print(msg)
@@ -234,12 +233,12 @@ def strategy(context, data):
         return
     
     #cols = ['close','high','low','volume']
-    cols = ['close','volume']
+    cols = 'close'
     ohlc = data.history(
             context.universe, cols, context.intraday_lookback, '1m')
 
     for asset in context.universe:
-        px = ohlc.xs(asset)
+        px = ohlc[asset]
         if asset not in context.entered:
             check_entry(context, asset, px)
         
@@ -271,14 +270,15 @@ def on_exit(context, asset):
 
 def signal_function(context, asset, px):
     last = px.close[-1]
-    t = context.params['short_sma']
-    T = context.params['long_sma']
-    volume_signal = ta.SMA(px.volume, t)[-1] > ta.SMA(px.volume, T)[-1]
+    upper, mid, lower = bollinger_band(px,context.params['bbands_period'])
+    fib_up, fib_low = context.supports[asset][-1], context.supports[asset][0]
+    dist_to_upper = 100*(upper - last)/(upper - lower)
+    dist_to_fib = 100*(fib_up - last)/(fib_up - fib_low)
     
-    if last > context.supports[asset][-1] and volume_signal:
+    if dist_to_fib < 10 and dist_to_upper < 10:
         # break-out on the upside
         return Signal.BUY
-    elif last < context.supports[asset][0] and volume_signal:
+    elif dist_to_fib > 90 and dist_to_upper > 90:
         # break-out on the downside
         return Signal.SELL
     else:
