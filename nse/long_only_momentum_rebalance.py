@@ -5,7 +5,7 @@
     Style tags: Momentum
     Asset class: Equities, ETFs
     Dataset: NSE
-    Risk: High
+    Risk: Medium
     Minimum Capital: 10,000
 """
 import datetime

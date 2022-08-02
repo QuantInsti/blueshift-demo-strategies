@@ -44,7 +44,7 @@ class Signal:
     NO_SIGNAL = 999
 
 def initialize(context):
-    context.strategy_name = 'Fibonacci Breakout Strategy (Futures)'
+    context.strategy_name = 'Fibonacci Breakout Strategy (Stocks)'
     
     # strategy parameters
     context.params = {'daily_lookback':20,
@@ -151,6 +151,10 @@ def initialize(context):
     if context.pipeline:
         attach_pipeline(make_strategy_pipeline(context), 
             name='strategy_pipeline')
+        
+    msg = f'Starting strategy {context.strategy_name} '
+    msg += f'with parameters {context.params}'
+    print(msg)
     
 def make_strategy_pipeline(context):
     pipe = Pipeline()
@@ -189,7 +193,7 @@ def generate_pipeline_universe(context, data):
     
 def generate_supports(context, data):
     if context.pipeline:
-        generate_pipeline_universe()
+        generate_pipeline_universe(context, data)
     
     if not context.universe:
         return
