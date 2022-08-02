@@ -47,7 +47,7 @@ def initialize(context):
                       'short_sma':10,
                       'long_sma':30,
                       'margin':0.15,
-                      'lotsize':1}
+                      'lots':1}
     
     set_algo_parameters('params') # the attribute of context
     
@@ -128,15 +128,15 @@ def generate_supports(context, data):
 def before_trading_start(context, data):
     if not context.capital_checked:
         prices = data.current(context.universe, 'close')
-        lotsize = context.params['lotsize']
+        lots = context.params['lots']
         required = 0
         for asset in context.universe:
-            required += context.lotsize[asset]*prices[asset]*lotsize
+            required += context.lotsize[asset]*prices[asset]*lots
         required = required*context.params['margin']
         capital = context.portfolio.starting_cash
         if capital < required:
             msg = f'Required capital is {required}, alloted {capital}, '
-            msg += f'please add more capital or reduce lotsize.'
+            msg += f'please add more capital or reduce number of lots.'
             raise ValueError(msg)
         msg = f'Starting strategy {context.strategy_name} '
         msg += f'with parameters {context.params}'
@@ -190,7 +190,7 @@ def check_entry(context, asset, px):
         return
     
     mult = context.lotsize[asset]
-    size = mult*context.params['lotsize']*signal
+    size = mult*context.params['lots']*signal
     order_target(asset, size)
     context.entered.add(asset)
     

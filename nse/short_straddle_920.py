@@ -7,18 +7,20 @@
     Asset class: Equity Options
     Dataset: NSE
 """
-from blueshift.api import symbol, order_target, set_slippage
-from blueshift.api import set_stoploss, set_takeprofit,
+from blueshift.api import symbol, order_target
+from blueshift.api import set_stoploss, set_takeprofit, square_off
 from blueshift.api import schedule_function, date_rules, time_rules
-from blueshift.finance import slippage
 
 def initialize(context):
+    context.strategy_name = 'NIFTY Weeklies Short Straddle'
+    context.lotsize = 50
     context.params = {
             'entry':5,
             'exit':30,
             'lots':1,
             'stoploss':0.4,
-            'takeprofit':0.4
+            'takeprofit':0.4,
+            'margin':0.15
             }
     
     try:
@@ -63,20 +65,33 @@ def initialize(context):
     schedule_function(
             close_out, date_rules.every_day(), 
             time_rules.market_close(exit_))
+    context.capital_checked = False
     
 def before_trading_start(context, data):
+    if not context.capital_checked:
+        px = data.current('NIFTY-I', 'close')
+        lots = context.params['lots']
+        required = context.lotsize*px*lots*2*context.params['margin']
+        capital = context.portfolio.starting_cash
+        if capital < required:
+            msg = f'Required capital is {required}, alloted {capital}, '
+            msg += f'please add more capital or reduce number of lots.'
+            raise ValueError(msg)
+        msg = f'Starting strategy {context.strategy_name} '
+        msg += f'with parameters {context.params}'
+        print(msg)
+        context.capital_checked = True
+    
     context.entered = set()
 
 def enter(context, data):
     close_out(context, data)
+    size = context.params['lots']
     for asset in context.universe:
-        order_target(asset,-50)
+        order_target(asset,-size)
 
 def close_out(context, data):
-    positions = context.portfolio.positions
-    if positions:
-        for asset in positions:
-            order_target(asset, 0)
+    square_off()
             
 def set_targets(context, data):
     if len(context.universe) == len(context.entered):
