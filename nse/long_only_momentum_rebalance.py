@@ -6,6 +6,7 @@
     Asset class: Equities, ETFs
     Dataset: NSE
     Risk: High
+    Minimum Capital: 10,000
 """
 import datetime
 

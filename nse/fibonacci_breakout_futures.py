@@ -11,6 +11,7 @@
     Asset class: Index Futures.
     Dataset: NSE
     Risk: High
+    Minimum Capital: 300,000
 """
 import talib as ta
 
@@ -77,7 +78,7 @@ def initialize(context):
         msg += 'long term lookback must be greater than short term lookback.'
         raise ValueError(msg)
     else:
-        context.params['intraday_lookback'] = context.params['long_sma']+10
+        context.intraday_lookback = context.params['long_sma']*2
         
     if context.params['stoploss']:
         try:
@@ -169,8 +170,8 @@ def strategy(context, data):
     
     #cols = ['close','high','low','volume']
     cols = ['close','volume']
-    lookback = context.params['intraday_lookback']
-    ohlc = data.history(context.universe, cols, lookback, '1m')
+    ohlc = data.history(
+            context.universe, cols, context.intraday_lookback, '1m')
 
     for asset in context.universe:
         px = ohlc.xs(asset)
