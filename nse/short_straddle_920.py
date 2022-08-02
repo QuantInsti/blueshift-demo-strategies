@@ -69,7 +69,7 @@ def initialize(context):
     
 def before_trading_start(context, data):
     if not context.capital_checked:
-        px = data.current('NIFTY-I', 'close')
+        px = data.current(symbol('NIFTY-I'), 'close')
         lots = context.params['lots']
         required = context.lotsize*px*lots*2*context.params['margin']
         capital = context.portfolio.starting_cash
