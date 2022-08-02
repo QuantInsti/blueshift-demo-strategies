@@ -187,8 +187,8 @@ def generate_pipeline_universe(context, data):
     
     n = context.params['num_stocks']
     candidates = pipeline_results.dropna()
-    candidates['metric'] = candidates.atr/candidates.move.abs()
-    candidates = candidates.metric.sort_values()
+    metric = candidates.atr/candidates.move.abs()
+    candidates = metric.sort_values()
     size = len(candidates)
     
     if size == 0:
@@ -288,13 +288,13 @@ def signal_function(context, asset, px):
     # check if we have a pullback from the supports
     if low < s1 and last > s1 and prev > s1:
         # pullback from low
-        return Signal.STRONG_BUY
+        return Signal.STRONG_SELL
     elif high > r2 and last < r2 and prev < r2:
         # pullback from high
-        return Signal.STRONG_SELL
+        return Signal.STRONG_BUY
     elif low < s2 and last > s2 and prev > s2:
-        return Signal.BUY
-    elif high > r1 and last < r1 and prev < r1:
         return Signal.SELL
+    elif high > r1 and last < r1 and prev < r1:
+        return Signal.BUY
     else:
         return Signal.NO_SIGNAL
