@@ -277,6 +277,7 @@ def check_entry(context, asset, px):
                        on_takeprofit=on_exit)
         
 def on_exit(context, asset):
+    print(f'{get_datetime()}:exiting asset {asset}.')
     context.exited.add(asset)
 
 def signal_function(context, asset, px):
