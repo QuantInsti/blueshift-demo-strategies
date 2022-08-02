@@ -15,7 +15,7 @@ import talib as ta
 
 from blueshift.finance import commission, slippage
 from blueshift.api import(  symbol,
-                            order_target_percent,
+                            order_target,
                             set_commission,
                             set_slippage,
                             schedule_function,
@@ -171,7 +171,7 @@ def check_entry(context, asset, px):
     
     lotsize = context.params['universe'][asset]
     size = lotsize*context.params['lotsize']
-    order_target_percent(asset, size)
+    order_target(asset, size)
     context.entered.add(asset)
     
     if context.params['stoploss']:
