@@ -45,7 +45,7 @@ def initialize(context):
     context.params = {'daily_lookback':20,
                       'universe':'NIFTY-I,BANKNIFTY-I',
                       'stoploss':0.005,
-                      'takeprofit':0.02,
+                      'takeprofit':None,
                       'short_sma':10,
                       'long_sma':30,
                       'leverage':2}
