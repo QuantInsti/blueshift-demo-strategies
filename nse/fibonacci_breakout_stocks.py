@@ -293,8 +293,8 @@ def signal_function(context, asset, px):
         # pullback from high
         return Signal.STRONG_SELL
     elif low < s2 and last > s2 and prev > s2:
-        pass
+        return Signal.BUY
     elif high > r1 and last < r1 and prev < r1:
-        pass
+        return Signal.SELL
     else:
         return Signal.NO_SIGNAL
