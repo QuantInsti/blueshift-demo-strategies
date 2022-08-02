@@ -14,6 +14,8 @@
     Minimum Capital: 300,000
 """
 import numpy as np
+import talib as ta
+
 from blueshift.finance import commission, slippage
 from blueshift.api import(  symbol,
                             order_target,
@@ -34,8 +36,9 @@ from blueshift.api import(  symbol,
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
-from blueshift.pipeline.factors import (
-        AverageDollarVolume, TrueRange)
+from blueshift.pipeline.factors import AverageDollarVolume
+from blueshift.pipeline import CustomFactor
+from blueshift.pipeline.data import EquityPricing
 
 class Signal:
     STRONG_BUY = 10
@@ -43,6 +46,14 @@ class Signal:
     SELL = -1
     STRONG_SELL = -10
     NO_SIGNAL = 999
+    
+def atr_factor(window_length, lookback):
+    class ATR(CustomFactor):
+        inputs = [EquityPricing.close, EquityPricing.high, EquityPricing.low]
+        def compute(self,today,assets,out,close,high,low):
+            for i in range(close.shape[1]):
+                out[i] = ta.ATR(high[:,i],low[:,i],close[:,i],lookback)
+    return ATR(window_length = window_length)
 
 def initialize(context):
     context.strategy_name = 'Fibonacci Breakout Strategy (Stocks)'
@@ -147,8 +158,8 @@ def make_strategy_pipeline(context):
     dollar_volume_filter = AverageDollarVolume(
             window_length=lookback).top(top_n)
     
-    # compute past returns
-    atr = TrueRange(window_length=lookback)
+    # compute atr
+    atr = atr_factor(2*lookback, lookback)
     pipe.add(atr,'atr')
     pipe.set_screen(dollar_volume_filter)
     return pipe
