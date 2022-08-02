@@ -117,10 +117,8 @@ def generate_signals(context, data):
         print(f'{get_datetime()}, only {size} stocks passed filterting criteria.')
         
     candidates = candidates[-n:]
-    reciprocal = 1/candidates.vol.pow(2)
-    total_variance = reciprocal.sum()
-    weights = reciprocal/total_variance
-    context.weights = weights.to_dict()
+    candidates.weights = 1/len(candidates)
+    context.weights = candidates.weights.to_dict()
 
 def rebalance(context,data):
     n = len(context.weights)
