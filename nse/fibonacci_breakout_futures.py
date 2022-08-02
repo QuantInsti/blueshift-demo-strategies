@@ -8,7 +8,7 @@
         orders. Entry is allowed till 2 hours before the market closes. 
         All positions are squared off 30 minutes before the market closes.
     Style tags: momentum and breakout.
-    Asset class: Equities, Futures and ETFs.
+    Asset class: Index Futures.
     Dataset: NSE
 """
 import talib as ta
@@ -43,18 +43,22 @@ class Signal:
 def initialize(context):
     # strategy parameters
     context.params = {'daily_lookback':20,
-                      'universe':'NIFTY-I,BANKNIFTY-I',
+                      'nifty':True,
+                      'banknifty':True,
                       'stoploss':0.005,
                       'takeprofit':None,
                       'short_sma':10,
                       'long_sma':30,
-                      'leverage':2}
+                      'lotsize':1}
     
+    context.params['universe'] = {}
+    if context.params['nifty']:
+        context.params['universe'][symbol('NIFTY-I')] = 50 # lotsize
+    if context.params['banknifty']:
+        context.params['universe'][symbol('BANKNIFTY-I')] = 25 # lotsize
     if not context.params['universe']:
-        raise ValueError(f'universe not defined.')
-    context.params['universe'] = context.params['universe'].split(',')
-    if len(context.params['universe']) > 10:
-        raise ValueError(f'universe can be maximum 10 instruments.')
+        raise ValueError(f'must choose atleast one of nifty or banknifty.')
+    
     
     try:
         assert context.params['daily_lookback'] == int(context.params['daily_lookback'])
@@ -96,7 +100,7 @@ def initialize(context):
     else:
         context.params['takeprofit'] = None
         
-    context.universe = [symbol(sym) for sym in context.params['universe']]
+    context.universe = list(context.params['universe'].keys())
 
     # set trading cost and slippage to zero
     set_commission(commission.PerShare(cost=0.002, min_trade_cost=0.0))
@@ -123,7 +127,7 @@ def before_trading_start(context, data):
     # reset all trackers
     context.entry = True
     context.trade = True
-    context.entered = {}
+    context.entered = set()
     context.exited = set()
     context.supports = {}
     context.signal = {}
@@ -165,10 +169,10 @@ def check_entry(context, asset, px):
     if signal == Signal.NO_SIGNAL:
         return
     
-    pos = Signal.get_position_size(signal)
-    size = pos*context.params['leverage']/len(context.universe)
+    lotsize = context.params['universe'][asset]
+    size = lotsize*context.params['lotsize']
     order_target_percent(asset, size)
-    context.entered[asset]=pos
+    context.entered.add(asset)
     
     if context.params['stoploss']:
         set_stoploss(

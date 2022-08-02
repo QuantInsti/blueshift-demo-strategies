@@ -1,16 +1,39 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Aug  1 22:40:13 2022
-
-@author: prodi
+    Title: NIFTY Weeklies Short Straddle
+    Description: This strategy sells a straddle on the NSE Nifty weeklies
+        at the open, with a given stoploss and take-profit and then 
+        squares off near end of the day.
+    Style tags: Volatility Premium
+    Asset class: Equity Options
+    Dataset: NSE
 """
-
-
-from blueshift.api import symbol, order_target, set_slippage, get_datetime
+from blueshift.api import symbol, order_target, set_slippage
 from blueshift.api import schedule_function, date_rules, time_rules
 from blueshift.finance import slippage
 
 def initialize(context):
+    context.params = {
+            'open':5,
+            'squareoff':30,
+            'lots':1
+            }
+    
+    try:
+        context.params['open'] = int(context.params['open'])
+        assert context.params['lookback'] <= 15
+        assert context.params['lookback'] >= 5
+    except:
+        msg = 'open must be an integer between 5 and 15 (minutes).'
+        raise ValueError(msg)
+        
+    try:
+        context.params['squareoff'] = int(context.params['squareoff'])
+        assert context.params['squareoff'] <= 15
+        assert context.params['squareoff'] >= 5
+    except:
+        msg = 'squareoff must be an integer between 30 and 60 (minutes).'
+        raise ValueError(msg)
+    
     context.universe = [
                         symbol('NIFTY-W0CE+0'),
                         symbol('NIFTY-W0PE-0'),
