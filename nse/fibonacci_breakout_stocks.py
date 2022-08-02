@@ -60,6 +60,13 @@ def atr_factor(window_length, lookback):
                     out[i] = np.nan
     return ATR(window_length = window_length)
 
+def move_factor(window_length, lookback):
+    class Move(CustomFactor):
+        inputs = [EquityPricing.close]
+        def compute(self,today,assets,out,close):
+            out[:] = (close[-1] - close[0])/window_length
+    return Move(window_length = window_length)
+
 def initialize(context):
     context.strategy_name = 'Fibonacci Breakout Strategy (Stocks)'
     
@@ -165,7 +172,9 @@ def make_strategy_pipeline(context):
     
     # compute atr
     atr = atr_factor(2*lookback, lookback)
+    move = move_factor(2*lookback, lookback)
     pipe.add(atr,'atr')
+    pipe.add(move,'move')
     pipe.set_screen(dollar_volume_filter)
     return pipe
 
@@ -178,7 +187,8 @@ def generate_pipeline_universe(context, data):
     
     n = context.params['num_stocks']
     candidates = pipeline_results.dropna()
-    candidates = candidates.atr.sort_values()
+    candidates['metric'] = candidates.atr/candidates.move.abs()
+    candidates = candidates.metric.sort_values()
     size = len(candidates)
     
     if size == 0:
@@ -189,7 +199,7 @@ def generate_pipeline_universe(context, data):
     if size < n:
         print(f'{get_datetime()}, only {size} stocks passed filterting criteria.')
         
-    # choose stocks with highest true ranges
+    # choose stocks with highest true ranges to move ratio
     context.universe = candidates[-n:].index.tolist()
     
 def generate_supports(context, data):
