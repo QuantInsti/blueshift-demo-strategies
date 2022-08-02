@@ -127,7 +127,7 @@ def before_trading_start(context, data):
         required = 0
         for asset in assets:
             required += context.universe[asset]*prices[asset]*lotsize
-        capital = context.portfolio.starting_capital
+        capital = context.portfolio.starting_cash
         if capital < required:
             msg = f'Required capital is {required}, alloted {capital}, '
             msg += f'please add more capital and try again.'

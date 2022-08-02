@@ -91,7 +91,7 @@ def initialize(context):
             raise ValueError(msg)
             
     required = context.params['order_value']*context.params['num_stocks']
-    capital = context.portfolio.starting_capital
+    capital = context.portfolio.starting_cash
     if capital < required:
         msg = f'Required capital is {required}, alloted {capital}, '
         msg += f'please add more capital and try again.'
