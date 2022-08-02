@@ -10,6 +10,7 @@
     Style tags: momentum and breakout.
     Asset class: Index Futures.
     Dataset: NSE
+    Risk: High
 """
 import talib as ta
 
@@ -48,12 +49,12 @@ def initialize(context):
     
     set_algo_parameters('params') # the attribute of context
     
-    context.params['universe'] = {}
+    context.lotsize = {}
     if context.params['nifty']:
-        context.params['universe'][symbol('NIFTY-I')] = 50 # lotsize
+        context.lotsize[symbol('NIFTY-I')] = 50
     if context.params['banknifty']:
-        context.params['universe'][symbol('BANKNIFTY-I')] = 25 # lotsize
-    if not context.params['universe']:
+        context.lotsize[symbol('BANKNIFTY-I')] = 25
+    if not context.lotsize:
         raise ValueError(f'must choose atleast one of nifty or banknifty.')
     
     
@@ -97,7 +98,7 @@ def initialize(context):
     else:
         context.params['takeprofit'] = None
         
-    context.universe = list(context.params['universe'].keys())
+    context.universe = list(context.lotsize.keys())
 
     # set trading cost and slippage to zero
     set_commission(commission.PerShare(cost=0.002, min_trade_cost=0.0))
@@ -124,12 +125,11 @@ def generate_supports(context, data):
     
 def before_trading_start(context, data):
     if not context.capital_checked:
-        assets = list(context.universe.keys())
-        prices = data.current(assets, 'close')
+        prices = data.current(context.universe, 'close')
         lotsize = context.params['lotsize']
         required = 0
-        for asset in assets:
-            required += context.universe[asset]*prices[asset]*lotsize
+        for asset in context.universe:
+            required += context.lotsize[asset]*prices[asset]*lotsize
         capital = context.portfolio.starting_cash
         if capital < required:
             msg = f'Required capital is {required}, alloted {capital}, '
@@ -186,8 +186,8 @@ def check_entry(context, asset, px):
     if signal == Signal.NO_SIGNAL:
         return
     
-    lotsize = context.params['universe'][asset]
-    size = lotsize*context.params['lotsize']
+    mult = context.lotsize[asset]
+    size = mult*context.params['lotsize']
     order_target(asset, size)
     context.entered.add(asset)
     

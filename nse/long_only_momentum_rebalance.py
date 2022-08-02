@@ -5,6 +5,7 @@
     Style tags: Momentum
     Asset class: Equities, ETFs
     Dataset: NSE
+    Risk: High
 """
 import datetime
 
