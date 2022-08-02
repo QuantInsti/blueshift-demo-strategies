@@ -9,7 +9,8 @@
 import datetime
 
 from blueshift_library.pipelines.pipelines import period_returns
-from blueshift.pipeline.factors import AverageDollarVolume
+from blueshift.pipeline.factors import (
+        AverageDollarVolume, AnnualizedVolatility)
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
@@ -65,6 +66,7 @@ def initialize(context):
         msg = 'universe must be an integer between 50 and 500.'
         raise ValueError(msg)
         
+    context.weights = {}
     # set long only
     set_long_only()
     
@@ -90,7 +92,9 @@ def make_strategy_pipeline(context):
     
     # compute past returns
     momentum = period_returns(lookback)
+    vol = AnnualizedVolatility(window_length=lookback)
     pipe.add(momentum,'momentum')
+    pipe.add(vol,'vol')
     pipe.set_screen(dollar_volume_filter)
     return pipe
 
@@ -98,37 +102,39 @@ def generate_signals(context, data):
     try:
         pipeline_results = pipeline_output('strategy_pipeline')
     except NoFurtherDataError:
-        context.long_securities = []
+        context.weights = {}
         return
     
     n = context.params['num_stocks']
-    momentum = pipeline_results.dropna().sort_values('momentum')
-    size = len(momentum)
+    candidates = pipeline_results.dropna().sort_values('momentum')
+    size = len(candidates)
 
     if size == 0:
         print(f'{get_datetime()}, no stocks passed filterting criteria.')
-        context.long_securities = []
+        context.weights = {}
         
     if size < n:
         print(f'{get_datetime()}, only {size} stocks passed filterting criteria.')
-
-    context.long_securities = momentum.index[-n:]
+        
+    candidates = candidates[-n:]
+    reciprocal = 1/candidates.vol.pow(2)
+    total_variance = reciprocal.sum()
+    weights = reciprocal/total_variance
+    context.weights = weights.to_dict()
 
 def rebalance(context,data):
-    n = len(context.long_securities)
+    n = len(context.weights)
     if n < 1:
         return
-        
-    weight = 0.5/n
 
     # square off old positions if any
     for security in context.portfolio.positions:
-        if security not in context.long_securities:
+        if security not in context.weights:
                order_target_percent(security, 0)
 
     # Place orders for the new portfolio
-    for security in context.long_securities:
-        order_target_percent(security, weight)
+    for security in context.weights:
+        order_target_percent(security, context.weights[security])
         
     if context.mode != 'BACKTEST':
         print(context.mode)
