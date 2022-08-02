@@ -152,9 +152,8 @@ def initialize(context):
     schedule_function(square_off_all, date_rules.every_day(),
                       time_rules.market_close(minutes=30))
     
-    if context.pipeline:
-        attach_pipeline(make_strategy_pipeline(context), 
-            name='strategy_pipeline')
+    attach_pipeline(make_strategy_pipeline(context), 
+        name='strategy_pipeline')
     
     context.benchmark = symbol('NIFTY50')
     msg = f'Starting strategy {context.strategy_name} '
