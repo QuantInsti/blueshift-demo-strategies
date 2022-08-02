@@ -52,7 +52,12 @@ def atr_factor(window_length, lookback):
         inputs = [EquityPricing.close, EquityPricing.high, EquityPricing.low]
         def compute(self,today,assets,out,close,high,low):
             for i in range(close.shape[1]):
-                out[i] = ta.ATR(high[:,i],low[:,i],close[:,i],lookback)
+                try:
+                    atr = ta.ATR(
+                            high[:,i],low[:,i],close[:,i],lookback)
+                    out[i] = atr[-1]
+                except:
+                    out[i] = np.nan
     return ATR(window_length = window_length)
 
 def initialize(context):
