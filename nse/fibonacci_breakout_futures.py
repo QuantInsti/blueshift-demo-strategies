@@ -63,10 +63,10 @@ def initialize(context):
     try:
         assert context.params['daily_lookback'] == int(context.params['daily_lookback'])
         assert context.params['daily_lookback'] > 10
-        assert context.params['daily_lookback'] <= 200
+        assert context.params['daily_lookback'] <= 60
     except:
         msg = 'daily lookback must be integer and greater than 10 and '
-        msg += 'less than or equal to 200.'
+        msg += 'less than or equal to 60.'
         raise ValueError(msg)
         
     try:

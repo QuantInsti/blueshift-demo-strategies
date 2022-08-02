@@ -13,8 +13,7 @@
     Risk: High
     Minimum Capital: 300,000
 """
-from blueshift_library.technicals.indicators import bollinger_band
-
+import numpy as np
 from blueshift.finance import commission, slippage
 from blueshift.api import(  symbol,
                             order_target,
@@ -35,12 +34,14 @@ from blueshift.api import(  symbol,
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
-from blueshift_library.pipelines.pipelines import period_returns
-from blueshift.pipeline.factors import AverageDollarVolume
+from blueshift.pipeline.factors import (
+        AverageDollarVolume, TrueRange)
 
 class Signal:
+    STRONG_BUY = 10
     BUY = 1
     SELL = -1
+    STRONG_SELL = -10
     NO_SIGNAL = 999
 
 def initialize(context):
@@ -51,10 +52,8 @@ def initialize(context):
                       'stocks':[],
                       'stoploss':0.005,
                       'takeprofit':None,
-                      'bbands_period':30,
                       'num_stocks':5,
                       'universe':100,
-                      'filter_lookback':12,
                       'order_size':1000}
     
     set_algo_parameters('params') # the attribute of context
@@ -75,13 +74,6 @@ def initialize(context):
         except:
             msg = 'num_stocks must be an integer between 2 and 20.'
             raise ValueError(msg)
-        try:
-            context.params['filter_lookback'] = int(context.params['filter_lookback'])
-            assert context.params['filter_lookback'] <= 12
-            assert context.params['filter_lookback'] >= 3
-        except:
-            msg = 'filter_lookback must be an integer between 3 and 12 (months).'
-            raise ValueError(msg)
         context.universe = []
         context.pipeline = True
     else:
@@ -99,21 +91,13 @@ def initialize(context):
     try:
         assert context.params['daily_lookback'] == int(context.params['daily_lookback'])
         assert context.params['daily_lookback'] > 10
-        assert context.params['daily_lookback'] <= 200
+        assert context.params['daily_lookback'] <= 60
     except:
         msg = 'daily lookback must be integer and greater than 10 and '
-        msg += 'less than or equal to 200.'
+        msg += 'less than or equal to 60.'
         raise ValueError(msg)
         
-    try:
-        assert context.params['bbands_period'] == int(context.params['bbands_period'])
-        assert context.params['bbands_period'] >= 20
-        assert context.params['bbands_period'] <= 200
-    except:
-        msg = 'bbands_period must be integers and between 20 to 200 (minutes).'
-        raise ValueError(msg)
-    else:
-        context.intraday_lookback = context.params['bbands_period']*2
+    context.intraday_lookback = 10 # we use last 5 bars only
         
     if context.params['stoploss']:
         try:
@@ -158,14 +142,14 @@ def initialize(context):
 def make_strategy_pipeline(context):
     pipe = Pipeline()
 
-    lookback = context.params['filter_lookback']*21
+    lookback = context.params['daily_lookback']
     top_n = context.params['universe']
     dollar_volume_filter = AverageDollarVolume(
             window_length=lookback).top(top_n)
     
     # compute past returns
-    momentum = period_returns(lookback)
-    pipe.add(momentum,'momentum')
+    atr = TrueRange(window_length=lookback)
+    pipe.add(atr,'atr')
     pipe.set_screen(dollar_volume_filter)
     return pipe
 
@@ -178,7 +162,7 @@ def generate_pipeline_universe(context, data):
     
     n = context.params['num_stocks']
     candidates = pipeline_results.dropna()
-    candidates = candidates.momentum.abs().sort_values()
+    candidates = candidates.atr.sort_values()
     size = len(candidates)
     
     if size == 0:
@@ -189,13 +173,13 @@ def generate_pipeline_universe(context, data):
     if size < n:
         print(f'{get_datetime()}, only {size} stocks passed filterting criteria.')
         
-    # choose stocks with least momentum to look out for a breakout
-    context.universe = candidates[:n].index.tolist()
+    # choose stocks with highest true ranges
+    context.universe = candidates[-n:].index.tolist()
     
 def generate_supports(context, data):
     if context.pipeline:
         generate_pipeline_universe(context, data)
-    
+        
     if not context.universe:
         return
     
@@ -234,13 +218,12 @@ def strategy(context, data):
     if not context.trade or not context.universe:
         return
     
-    #cols = ['close','high','low','volume']
-    cols = 'close'
+    cols = ['close','high','low']
     ohlc = data.history(
             context.universe, cols, context.intraday_lookback, '1m')
 
     for asset in context.universe:
-        px = ohlc[asset]
+        px = ohlc.xs[asset]
         if asset not in context.entered:
             check_entry(context, asset, px)
         
@@ -271,17 +254,21 @@ def on_exit(context, asset):
     context.exited.add(asset)
 
 def signal_function(context, asset, px):
-    last = px[-1]
-    upper, mid, lower = bollinger_band(px,context.params['bbands_period'])
-    fib_up, fib_low = context.supports[asset][-1], context.supports[asset][0]
-    dist_to_upper = 100*(upper - last)/(upper - lower)
-    dist_to_fib = 100*(fib_up - last)/(fib_up - fib_low)
+    last, prev = px.close[-1], px.close[-2]
+    high, low = np.nanmax(px.high[-5:]), np.nanmin(px.high[-5:])
+    s1, s2 = context.supports[asset][0], context.supports[asset][1]
+    r1, r2 = context.supports[asset][-2], context.supports[asset][-1]
     
-    if dist_to_fib < 10 and dist_to_upper < 10:
-        # break-out on the upside
-        return Signal.BUY
-    elif dist_to_fib > 90 and dist_to_upper > 90:
-        # break-out on the downside
-        return Signal.SELL
+    # check if we have a pullback from the supports
+    if low < s1 and last > s1 and prev > s1:
+        # pullback from low
+        return Signal.STRONG_BUY
+    elif high > r2 and last < r2 and prev < r2:
+        # pullback from high
+        return Signal.STRONG_SELL
+    elif low < s2 and last > s2 and prev > s2:
+        pass
+    elif high > r1 and last < r1 and prev < r1:
+        pass
     else:
         return Signal.NO_SIGNAL
