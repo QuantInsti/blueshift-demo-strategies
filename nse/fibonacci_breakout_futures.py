@@ -24,6 +24,7 @@ from blueshift.api import(  symbol,
                             cancel_order,
                             set_stoploss,
                             set_takeprofit,
+                            set_algo_parameters,
                        )
 
 
@@ -44,6 +45,8 @@ def initialize(context):
                       'short_sma':10,
                       'long_sma':30,
                       'lotsize':1}
+    
+    set_algo_parameters('params') # the attribute of context
     
     context.params['universe'] = {}
     if context.params['nifty']:

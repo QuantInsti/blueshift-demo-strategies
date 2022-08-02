@@ -22,6 +22,7 @@ from blueshift.api import(
                             pipeline_output,
                             get_datetime,
                             set_long_only,
+                            set_algo_parameters,
                             terminate,
                        )
 
@@ -44,6 +45,7 @@ def initialize(context):
                       'order_value':None    # for each stock
                       }
     
+    set_algo_parameters('params') # the attribute of context
     try:
         context.params['lookback'] = int(context.params['lookback'])
         assert context.params['lookback'] <= 12
@@ -162,7 +164,7 @@ def rebalance(context,data):
     # square off old positions if any
     for security in context.portfolio.positions:
         if security not in context.weights:
-               order_target_value(security, 0, algo_id=context.algo_id)
+               order_target_value(security, 0)
 
     # Place orders for the new portfolio
     for security in context.weights:
