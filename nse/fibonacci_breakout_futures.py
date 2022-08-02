@@ -45,6 +45,7 @@ def initialize(context):
                       'takeprofit':None,
                       'short_sma':10,
                       'long_sma':30,
+                      'margin':0.15,
                       'lotsize':1}
     
     set_algo_parameters('params') # the attribute of context
@@ -130,10 +131,11 @@ def before_trading_start(context, data):
         required = 0
         for asset in context.universe:
             required += context.lotsize[asset]*prices[asset]*lotsize
+        required = required*context.params['margin']
         capital = context.portfolio.starting_cash
         if capital < required:
             msg = f'Required capital is {required}, alloted {capital}, '
-            msg += f'please add more capital and try again.'
+            msg += f'please add more capital or reduce lotsize.'
             raise ValueError(msg)
         msg = f'Starting strategy {context.strategy_name} '
         msg += f'with parameters {context.params}'
