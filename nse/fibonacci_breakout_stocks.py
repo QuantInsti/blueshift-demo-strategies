@@ -269,7 +269,7 @@ def on_exit(context, asset):
     context.exited.add(asset)
 
 def signal_function(context, asset, px):
-    last = px.close[-1]
+    last = px[-1]
     upper, mid, lower = bollinger_band(px,context.params['bbands_period'])
     fib_up, fib_low = context.supports[asset][-1], context.supports[asset][0]
     dist_to_upper = 100*(upper - last)/(upper - lower)
