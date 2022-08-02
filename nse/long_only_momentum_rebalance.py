@@ -35,11 +35,13 @@ def next_month(dt):
         
 
 def initialize(context):
+    context.strategy_name = 'Long-only momentum portfolio rebalancer'
+    
     # The context variables can be accessed by other methods
-    context.params = {'lookback':12,
-                      'num_stocks':10,
-                      'universe':100,
-                      'order_value':None
+    context.params = {'lookback':12,        # lookback for momentum
+                      'num_stocks':10,      # max assets to trade
+                      'universe':100,       # filtering on liquidity
+                      'order_value':None    # for each stock
                       }
     
     try:
@@ -87,6 +89,13 @@ def initialize(context):
         except:
             msg = 'order_value must be a number between 500 and 50,000.'
             raise ValueError(msg)
+            
+    required = context.params['order_value']*context.params['num_stocks']
+    capital = context.portfolio.starting_capital
+    if capital < required:
+        msg = f'Required capital is {required}, alloted {capital}, '
+        msg += f'please add more capital and try again.'
+        raise ValueError(msg)
         
     context.weights = {}
     # set long only
@@ -99,6 +108,10 @@ def initialize(context):
     # Set up the pipe-lines for strategies
     attach_pipeline(make_strategy_pipeline(context), 
             name='strategy_pipeline')
+    
+    msg = f'Starting strategy {context.strategy_name} '
+    msg += f'with parameters {context.params}'
+    print(msg)
 
 def strategy(context, data):
     generate_signals(context, data)
@@ -149,7 +162,7 @@ def rebalance(context,data):
     # square off old positions if any
     for security in context.portfolio.positions:
         if security not in context.weights:
-               order_target_value(security, 0)
+               order_target_value(security, 0, algo_id=context.algo_id)
 
     # Place orders for the new portfolio
     for security in context.weights:

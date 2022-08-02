@@ -33,6 +33,8 @@ class Signal:
     NO_SIGNAL = 999
 
 def initialize(context):
+    context.strategy_name = 'Fibonacci Breakout Strategy (Futures)'
+    
     # strategy parameters
     context.params = {'daily_lookback':20,
                       'nifty':True,
@@ -105,6 +107,8 @@ def initialize(context):
     schedule_function(square_off_all, date_rules.every_day(),
                       time_rules.market_close(minutes=30))
     
+    context.capital_checked = False
+    
 def generate_supports(context, data):
     cols = ['close']
     lookback = context.params['daily_lookback']
@@ -116,6 +120,23 @@ def generate_supports(context, data):
                           for l in [0,0.236,0.382,0.5,0.618,1]]
     
 def before_trading_start(context, data):
+    if not context.capital_checked:
+        assets = list(context.universe.keys())
+        prices = data.current(assets, 'close')
+        lotsize = context.params['lotsize']
+        required = 0
+        for asset in assets:
+            required += context.universe[asset]*prices[asset]*lotsize
+        capital = context.portfolio.starting_capital
+        if capital < required:
+            msg = f'Required capital is {required}, alloted {capital}, '
+            msg += f'please add more capital and try again.'
+            raise ValueError(msg)
+        msg = f'Starting strategy {context.strategy_name} '
+        msg += f'with parameters {context.params}'
+        print(msg)
+        context.capital_checked = True
+        
     # reset all trackers
     context.entry = True
     context.trade = True
@@ -141,7 +162,8 @@ def strategy(context, data):
     if not context.trade:
         return
     
-    cols = ['close','high','low','volume']
+    #cols = ['close','high','low','volume']
+    cols = ['close','volume']
     lookback = context.params['intraday_lookback']
     ohlc = data.history(context.universe, cols, lookback, '1m')
 
@@ -178,15 +200,16 @@ def on_exit(context, asset):
     context.exited.add(asset)
 
 def signal_function(context, asset, px):
-    typical = 0.33*(px.close[-1] + px.high[-1] + px.low[-1])
+    #last = 0.33*(px.close[-1] + px.high[-1] + px.low[-1])
+    last = px.close[-1]
     t = context.params['short_sma']
     T = context.params['long_sma']
     volume_signal = ta.SMA(px.volume, t)[-1] > ta.SMA(px.volume, T)[-1]
     
-    if typical > context.supports[asset][-1] and volume_signal:
+    if last > context.supports[asset][-1] and volume_signal:
         # break-out on the upside
         return Signal.BUY
-    elif typical < context.supports[asset][0] and volume_signal:
+    elif last < context.supports[asset][0] and volume_signal:
         # break-out on the downside
         return Signal.SELL
     else:
