@@ -55,6 +55,7 @@ def initialize(context):
                       'long_sma':30,
                       'num_stocks':5,
                       'universe':100,
+                      'filter_lookback':12,
                       'order_size':1000}
     
     set_algo_parameters('params') # the attribute of context
@@ -74,6 +75,13 @@ def initialize(context):
             assert context.params['num_stocks'] >= 2
         except:
             msg = 'num_stocks must be an integer between 2 and 20.'
+            raise ValueError(msg)
+        try:
+            context.params['filter_lookback'] = int(context.params['filter_lookback'])
+            assert context.params['filter_lookback'] <= 12
+            assert context.params['filter_lookback'] >= 3
+        except:
+            msg = 'filter_lookback must be an integer between 3 and 12 (months).'
             raise ValueError(msg)
         context.universe = []
         context.pipeline = True
@@ -147,8 +155,8 @@ def initialize(context):
 def make_strategy_pipeline(context):
     pipe = Pipeline()
 
-    lookback = context.params['lookback']*21
-    top_n = context.params['universe']*21
+    lookback = context.params['filter_lookback']*21
+    top_n = context.params['universe']
     dollar_volume_filter = AverageDollarVolume(
             window_length=lookback).top(top_n)
     

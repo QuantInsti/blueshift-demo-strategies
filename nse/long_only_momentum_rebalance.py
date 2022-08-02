@@ -125,7 +125,7 @@ def make_strategy_pipeline(context):
     pipe = Pipeline()
 
     lookback = context.params['lookback']*21
-    top_n = context.params['universe']*21
+    top_n = context.params['universe']
     dollar_volume_filter = AverageDollarVolume(
             window_length=lookback).top(top_n)
     
