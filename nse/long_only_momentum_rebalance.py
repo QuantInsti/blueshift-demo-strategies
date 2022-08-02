@@ -9,8 +9,7 @@
 import datetime
 
 from blueshift_library.pipelines.pipelines import period_returns
-from blueshift.pipeline.factors import (
-        AverageDollarVolume, AnnualizedVolatility)
+from blueshift.pipeline.factors import AverageDollarVolume
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
@@ -92,9 +91,7 @@ def make_strategy_pipeline(context):
     
     # compute past returns
     momentum = period_returns(lookback)
-    vol = AnnualizedVolatility(window_length=lookback)
     pipe.add(momentum,'momentum')
-    pipe.add(vol,'vol')
     pipe.set_screen(dollar_volume_filter)
     return pipe
 
@@ -117,7 +114,7 @@ def generate_signals(context, data):
         print(f'{get_datetime()}, only {size} stocks passed filterting criteria.')
         
     candidates = candidates[-n:]
-    candidates.weights = 1/len(candidates)
+    candidates['weights'] = 1/len(candidates)
     context.weights = candidates.weights.to_dict()
 
 def rebalance(context,data):
