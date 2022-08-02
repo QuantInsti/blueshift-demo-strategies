@@ -132,6 +132,7 @@ def rebalance(context,data):
         order_target_percent(security, weight)
         
     if context.mode != AlgoMode.BACKTEST:
+        print(context.mode)
         month, year = next_month(get_datetime())
         msg = 'Rebalancing complete. This strategy is designed for '
         msg += 'monthly rebalancing, next rebalance date is first '
