@@ -69,8 +69,8 @@ def initialize(context):
         raise ValueError(msg)
         
     if not context.params['order_value']:
-        context.params['order_value'] = context.portfolio.starting_cash
-        context.params['order_value'] / context.params['num_stocks']
+        capital = context.portfolio.starting_cash
+        context.params['order_value'] = capital/context.params['num_stocks']
         try:
             assert context.params['order_value'] <= 50000
             assert context.params['order_value'] >= 1000
