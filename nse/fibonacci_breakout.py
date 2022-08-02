@@ -9,7 +9,7 @@
         All positions are squared off 30 minutes before the market closes.
     Style tags: momentum and breakout.
     Asset class: Equities, Futures and ETFs.
-    Broker: NSE
+    Dataset: NSE
 """
 import talib as ta
 

@@ -1,10 +1,10 @@
 """
-    Title: Classic (Jegadeesh and Titman) cross-sectional momentum (equal weights)
+    Title: Long-only momentum portfolio rebalancer
     Description: This strategy uses past returns to rank securities
-                and go long (short) the top (bottom) n-percentile
+                and go long the top (bottom) n assets.
     Style tags: Momentum
-    Asset class: Equities, Futures, ETFs, Currencies
-    Dataset: All
+    Asset class: Equities, ETFs
+    Dataset: NSE
 """
 import datetime
 
@@ -14,7 +14,7 @@ from blueshift.pipeline.factors import AverageDollarVolume
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
 from blueshift.api import(
-                            order_target_percent,
+                            order_target_value,
                             schedule_function,
                             date_rules,
                             time_rules,
@@ -38,7 +38,8 @@ def initialize(context):
     # The context variables can be accessed by other methods
     context.params = {'lookback':12,
                       'num_stocks':10,
-                      'universe':100
+                      'universe':100,
+                      'order_value':1000
                       }
     
     try:
@@ -64,6 +65,28 @@ def initialize(context):
     except:
         msg = 'universe must be an integer between 50 and 500.'
         raise ValueError(msg)
+        
+    if not context.params['order_value']:
+        context.params['order_value'] = context.portfolio.starting_cash
+        context.params['order_value'] / context.params['num_stocks']
+        try:
+            assert context.params['order_value'] <= 50000
+            assert context.params['order_value'] >= 1000
+        except:
+            msg = f'order_value is {context.params["order_value"]} based on '
+            msg += f'initial capital {context.portfolio.starting_cash} '
+            msg += f'and number of stocks {context.params["num_stocks"]}'
+            msg += f', but it must be between 500 and 50,000. Please '
+            msg += 'adjust initial capital or number of stocks.'
+            raise ValueError(msg)
+    else:
+        try:
+            context.params['order_value'] = float(context.params['order_value'])
+            assert context.params['order_value'] <= 50000
+            assert context.params['order_value'] >= 1000
+        except:
+            msg = 'order_value must be a number between 500 and 50,000.'
+            raise ValueError(msg)
         
     context.weights = {}
     # set long only
@@ -114,7 +137,8 @@ def generate_signals(context, data):
         print(f'{get_datetime()}, only {size} stocks passed filterting criteria.')
         
     candidates = candidates[-n:]
-    candidates['weights'] = 1/len(candidates)
+    value = context.params['order_value']
+    candidates['weights'] = value
     context.weights = candidates.weights.to_dict()
 
 def rebalance(context,data):
@@ -125,11 +149,11 @@ def rebalance(context,data):
     # square off old positions if any
     for security in context.portfolio.positions:
         if security not in context.weights:
-               order_target_percent(security, 0)
+               order_target_value(security, 0)
 
     # Place orders for the new portfolio
     for security in context.weights:
-        order_target_percent(security, context.weights[security])
+        order_target_value(security, context.weights[security])
         
     if context.mode != 'BACKTEST':
         print(context.mode)
