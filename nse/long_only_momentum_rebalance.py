@@ -23,7 +23,6 @@ from blueshift.api import(
                             get_datetime,
                             set_long_only,
                             terminate,
-                            AlgoMode
                        )
 
 def next_month(dt):
@@ -131,7 +130,7 @@ def rebalance(context,data):
     for security in context.long_securities:
         order_target_percent(security, weight)
         
-    if context.mode != AlgoMode.BACKTEST:
+    if context.mode != 'BACKTEST':
         print(context.mode)
         month, year = next_month(get_datetime())
         msg = 'Rebalancing complete. This strategy is designed for '
