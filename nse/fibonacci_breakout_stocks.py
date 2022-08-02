@@ -177,7 +177,8 @@ def generate_pipeline_universe(context, data):
         return
     
     n = context.params['num_stocks']
-    candidates = pipeline_results.dropna().sort_values('momentum')
+    candidates = pipeline_results.dropna()
+    candidates = candidates.momentum.abs().sort_values()
     size = len(candidates)
     
     if size == 0:
@@ -188,7 +189,8 @@ def generate_pipeline_universe(context, data):
     if size < n:
         print(f'{get_datetime()}, only {size} stocks passed filterting criteria.')
         
-    context.universe = candidates[-n:].index.tolist()
+    # choose stocks with least momentum to look out for a breakout
+    context.universe = candidates[:n].index.tolist()
     
 def generate_supports(context, data):
     if context.pipeline:
