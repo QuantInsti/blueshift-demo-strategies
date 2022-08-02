@@ -48,5 +48,5 @@ def rebalance(context,data):
     # Position 50% of portfolio to be long in each security
     for security in context.long_portfolio:
         order_target_percent(security, 1.0/10)
-        set_stoploss(security, 'PERCENT', 0.05)
-        set_takeprofit(security,'PERCENT',0.1)
+        #set_stoploss(security, 'PERCENT', 0.05)
+        #set_takeprofit(security,'PERCENT',0.1)
