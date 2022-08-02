@@ -31,14 +31,6 @@ class Signal:
     BUY = 1
     SELL = -1
     NO_SIGNAL = 999
-    
-    @classmethod
-    def get_position_size(cls, signal):
-        if signal == cls.BUY:
-            return 0.5
-        elif signal == cls.SELL:
-            return -0.5
-        return 0
 
 def initialize(context):
     # strategy parameters
@@ -141,7 +133,7 @@ def square_off_all(context, data):
         cancel_order(oid)
         
     for asset in context.portfolio.positions:
-        order_target_percent(asset, 0)
+        order_target(asset, 0)
         
     context.trade = False
 
