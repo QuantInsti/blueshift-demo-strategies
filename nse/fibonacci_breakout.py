@@ -1,10 +1,14 @@
 """
-    Title: Intraday Technical Strategies
-    Description: This is a long short strategy based on Fibonacci support and resistance.
-        Goes with the momentum for levels break-outs, else buys near support and sells
-        near resistance if confirmed by ADX
-    Style tags: momentum and mean reversion
-    Asset class: Equities, Futures, ETFs and Currencies
+    Title: Fibonacci Breakout Strategy (Intraday).
+    Description: This is a long short strategy based on Fibonacci support 
+        and resistance. The supports and resistance levels are established
+        at before the market opens. During the market hours, if the 
+        typical price crosses either the support or the resistance level,
+        we position for a breakout, with optional stoploss or takeprofit 
+        orders. Entry is allowed till 2 hours before the market closes. 
+        All positions are squared off 30 minutes before the market closes.
+    Style tags: momentum and breakout.
+    Asset class: Equities, Futures and ETFs.
     Broker: NSE
 """
 import talib as ta
@@ -72,18 +76,25 @@ def initialize(context):
     else:
         context.params['intraday_lookback'] = context.params['long_sma']+10
         
-    try:
-        sl = float(context.params['stoploss'])
-        if sl < 0 or sl > 0.1:raise ValueError()
-    except:
-        'stoploss must be a fraction between 0 to 0.10'
-        raise ValueError(msg)
-    try:
-        tp = float(context.params['takeprofit'])
-        if tp < 0.005 or tp > 0.1:raise ValueError()
-    except:
-        'takeprofit must be a fraction between 0.005 to 0.10'
-        raise ValueError(msg)
+    if context.params['stoploss']:
+        try:
+            sl = float(context.params['stoploss'])
+            if sl < 0 or sl > 0.1:raise ValueError()
+        except:
+            'stoploss must be a fraction between 0 to 0.10'
+            raise ValueError(msg)
+    else:
+        context.params['stoploss'] = None
+            
+    if context.params['takeprofit']:
+        try:
+            tp = float(context.params['takeprofit'])
+            if tp < 0.005 or tp > 0.1:raise ValueError()
+        except:
+            'takeprofit must be a fraction between 0.005 to 0.10'
+            raise ValueError(msg)
+    else:
+        context.params['takeprofit'] = None
         
     context.universe = [symbol(sym) for sym in context.params['universe']]
 
@@ -158,11 +169,14 @@ def check_entry(context, asset, px):
     size = pos*context.params['leverage']/len(context.universe)
     order_target_percent(asset, size)
     context.entered[asset]=pos
-    set_stoploss(
-            asset, 'PERCENT', context.params['stoploss'], trailing=False, 
-            on_stoploss=on_exit)
-    set_takeprofit(asset, 'PERCENT', context.params['takeprofit'],
-                   on_takeprofit=on_exit)
+    
+    if context.params['stoploss']:
+        set_stoploss(
+                asset, 'PERCENT', context.params['stoploss'], 
+                trailing=False, on_stoploss=on_exit)
+    if context.params['takeprofit']:
+        set_takeprofit(asset, 'PERCENT', context.params['takeprofit'],
+                       on_takeprofit=on_exit)
         
 def on_exit(context, asset):
     context.exited.add(asset)
