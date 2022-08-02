@@ -155,7 +155,7 @@ def initialize(context):
     attach_pipeline(make_strategy_pipeline(context), 
         name='strategy_pipeline')
     
-    context.benchmark = symbol('NIFTY50')
+    context.benchmark = symbol('NIFTY')
     msg = f'Starting strategy {context.strategy_name} '
     msg += f'with parameters {context.params}'
     print(msg)
