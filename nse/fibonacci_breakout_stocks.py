@@ -32,6 +32,7 @@ from blueshift.api import(  symbol,
                             set_stoploss,
                             set_takeprofit,
                             set_algo_parameters,
+                            square_off
                        )
 
 from blueshift.pipeline import Pipeline
@@ -235,9 +236,7 @@ def square_off_all(context, data):
     for oid in context.open_orders:
         cancel_order(oid)
         
-    for asset in context.portfolio.positions:
-        order_target(asset, 0)
-        
+    square_off()
     context.trade = False
 
 def strategy(context, data):
