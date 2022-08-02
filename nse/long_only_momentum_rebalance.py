@@ -39,7 +39,7 @@ def initialize(context):
     context.params = {'lookback':12,
                       'num_stocks':10,
                       'universe':100,
-                      'order_value':1000
+                      'order_value':None
                       }
     
     try:
