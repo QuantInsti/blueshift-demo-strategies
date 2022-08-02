@@ -41,11 +41,11 @@ from blueshift.pipeline import CustomFactor
 from blueshift.pipeline.data import EquityPricing
 
 class Signal:
-    STRONG_BUY = 10
-    BUY = 1
-    SELL = -1
-    STRONG_SELL = -10
-    NO_SIGNAL = 999
+    STRONG_BUY = 1
+    BUY = 0.5
+    SELL = -0.5
+    STRONG_SELL = -1
+    NO_SIGNAL = 0
     
 def atr_factor(window_length, lookback):
     class ATR(CustomFactor):
@@ -150,7 +150,7 @@ def initialize(context):
         attach_pipeline(make_strategy_pipeline(context), 
             name='strategy_pipeline')
     
-    set_long_only()
+    #set_long_only()
     msg = f'Starting strategy {context.strategy_name} '
     msg += f'with parameters {context.params}'
     print(msg)
@@ -254,7 +254,7 @@ def check_entry(context, asset, px):
     if signal == Signal.NO_SIGNAL:
         return
     
-    size = context.params['order_size']
+    size = context.params['order_size']*signal
     order_target(asset, size)
     context.entered.add(asset)
     

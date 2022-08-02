@@ -33,7 +33,7 @@ from blueshift.api import(  symbol,
 class Signal:
     BUY = 1
     SELL = -1
-    NO_SIGNAL = 999
+    NO_SIGNAL = 0
 
 def initialize(context):
     context.strategy_name = 'Fibonacci Breakout Strategy (Futures)'
@@ -190,7 +190,7 @@ def check_entry(context, asset, px):
         return
     
     mult = context.lotsize[asset]
-    size = mult*context.params['lotsize']
+    size = mult*context.params['lotsize']*signal
     order_target(asset, size)
     context.entered.add(asset)
     
