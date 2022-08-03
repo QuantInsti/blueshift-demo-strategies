@@ -13,6 +13,8 @@
     Risk: High
     Minimum Capital: 300,000
 """
+import numpy as np
+
 from blueshift_library.pipelines.pipelines import technical_factor
 from blueshift_library.technicals.indicators import volatility
 from blueshift_library.toolbox.statistical import (
@@ -237,6 +239,9 @@ def before_trading_start(context, data):
     prices = data.history(context.universe, cols, lookback, '1d')
     for asset in context.universe:
         px = prices.xs(asset)
+        if len(px) < 1:
+            context.days[asset] = (np.nan, np.nan, np.nan)
+            continue
         context.regime[asset] = get_hmm_state(px.close)[-1]
         high, low, close = px.high[-1], px.low[-1], px.close[-1]
         context.prev[asset] = (high, low, close)
@@ -248,6 +253,9 @@ def opening_range(context, data):
     
     for asset in context.universe:
         px = prices.xs(asset)
+        if len(px) < 1:
+            context.days[asset] = (np.nan, np.nan, np.nan)
+            continue
         px = px[px.index.date == get_datetime().date()]
         high, low, close = px.high.max(), px.low.min(), px.close[-1]
         context.days[asset] = (high, low, close)
@@ -311,8 +319,8 @@ def signal_function(context, asset, px):
     regime = context.regime[asset]
     
     if days_low > last_high and px > days_close and regime == 2:
-        return Signal.BUY
-    elif days_high < last_low and px < days_close and regime == 0:
         return Signal.SELL
+    elif days_high < last_low and px < days_close and regime == 0:
+        return Signal.BUY
     else:
         return Signal.NO_SIGNAL
