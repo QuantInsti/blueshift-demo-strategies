@@ -275,6 +275,7 @@ def strategy(context, data):
     if not context.universe:
         return
     
+    print(f'{get_datetime()}: running strategy')
     prices = data.current(context.universe,'close')
     for asset in context.universe:
         if asset not in context.entered:
