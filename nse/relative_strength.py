@@ -288,6 +288,7 @@ def check_entry(context, asset, px):
     if asset in context.exited or asset in context.entered:
         return
     
+    print(f'{get_datetime()}: running check entry')
     signal = signal_function(context, asset, px)
     if signal == Signal.NO_SIGNAL:
         return
@@ -308,6 +309,7 @@ def on_exit(context, asset):
     context.exited.add(asset)
 
 def signal_function(context, asset, px):
+    print(f'{get_datetime()}: running signal function')
     days_high, days_low, days_close = context.days[asset]
     last_high, last_low, last_close = context.prev[asset]   
     regime = context.regime[asset]
