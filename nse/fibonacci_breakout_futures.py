@@ -168,6 +168,10 @@ def strategy(context, data):
     if not context.trade:
         return
     
+    if len(context.universe) == len(context.entered):
+        # all entry done, nothing to do
+        return
+    
     #cols = ['close','high','low','volume']
     cols = ['close','volume']
     ohlc = data.history(

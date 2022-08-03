@@ -86,7 +86,7 @@ def before_trading_start(context, data):
 
 def enter(context, data):
     close_out(context, data)
-    size = context.params['lots']
+    size = context.params['lots']*context.lotsize
     for asset in context.universe:
         order_target(asset,-size)
 
