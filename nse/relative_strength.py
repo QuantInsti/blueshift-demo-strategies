@@ -255,13 +255,13 @@ def check_entry(context, asset, px):
     order_target(asset, size)
     context.entered.add(asset)
     
-    if context.params['stoploss']:
-        set_stoploss(
-                asset, 'PERCENT', context.params['stoploss'], 
-                trailing=False, on_stoploss=on_exit)
-    if context.params['takeprofit']:
-        set_takeprofit(asset, 'PERCENT', context.params['takeprofit'],
-                       on_takeprofit=on_exit)
+#    if context.params['stoploss']:
+#        set_stoploss(
+#                asset, 'PERCENT', context.params['stoploss'], 
+#                trailing=False, on_stoploss=on_exit)
+#    if context.params['takeprofit']:
+#        set_takeprofit(asset, 'PERCENT', context.params['takeprofit'],
+#                       on_takeprofit=on_exit)
         
 def on_exit(context, asset):
     context.exited.add(asset)
