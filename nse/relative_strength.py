@@ -249,14 +249,13 @@ def strategy(context, data):
     if len(context.universe) == len(context.entered):
         return
     
-    if not context.long_universe and not context.short_universe:
+    if not context.universe:
         return
     
-    universe = list(set(context.long_universe + context.short_universe))
     cols = 'close'
-    ohlc = data.history(universe, cols, context.intraday_lookback, '1m')
+    ohlc = data.history(context.universe, cols, context.intraday_lookback, '1m')
 
-    for asset in universe:
+    for asset in context.universe:
         px = ohlc[asset]
         if asset not in context.entered:
             check_entry(context, asset, px)
