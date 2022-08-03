@@ -36,7 +36,6 @@ from blueshift.api import(  symbol,
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
 from blueshift.pipeline.factors import AverageDollarVolume
-from blueshift_library.technicals.indicators import ema
 
 class Signal:
     BUY = 1
@@ -50,6 +49,7 @@ def initialize(context):
     context.params = {'daily_lookback':200,
                       'stocks':[],
                       'intraday_lookback':60,
+                      'open':30,
                       'frequency':5,
                       'stoploss':0.005,
                       'takeprofit':None,
@@ -116,14 +116,24 @@ def initialize(context):
         context.params['takeprofit'] = None
         
     try:
+        assert context.params['open'] == int(context.params['open'])
+        assert context.params['open'] >= 30
+        assert context.params['open'] <= 60
+    except:
+        msg = 'open must be integer and greater than or equal to '
+        msg += '30 and less than or equal to 60 (minutes).'
+        raise ValueError(msg)
+    t = context.params['open']
+    
+    try:
         assert context.params['frequency'] == int(context.params['frequency'])
         assert context.params['frequency'] >= 1
-        assert context.params['frequency'] <= 30
+        assert context.params['frequency'] <= 60
     except:
-        msg = 'frequency must be integer and greater than or equal to '
-        msg += '10 and less than or equal to 30.'
+        msg = 'open must be integer and greater than or equal to '
+        msg += '1 and less than or equal to 60 (minutes).'
         raise ValueError(msg)
-    t = context.params['frequency']
+    f = context.params['frequency']
     
     n = len(context.universe) if context.universe else context.params['num_stocks']
     required = n*context.params['order_size']
@@ -155,10 +165,12 @@ def initialize(context):
     else:
         context.params['takeprofit'] = None
     
+    schedule_function(opening_range, date_rules.every_day(),
+                      time_rules.market_open(t))
     schedule_function(strategy, date_rules.every_day(),
-                      time_rules.every_nth_minute(t))
+                      time_rules.every_nth_minute(f))
     schedule_function(stop_entry, date_rules.every_day(),
-                      time_rules.market_close(hours=2))
+                      time_rules.market_open(hours=1, minutes=30))
     schedule_function(square_off_all, date_rules.every_day(),
                       time_rules.market_close(minutes=30))
     
@@ -209,29 +221,39 @@ def generate_universe(context, data):
     
 def before_trading_start(context, data):
     # reset all trackers
-    context.entry = True
-    context.trade = True
+    context.entry = False
+    context.trade = False
     context.entered = set()
     context.exited = set()
     context.regime = {}
-    context.support = {}
-    context.resistance = {}
-    context.signal = {}
+    context.days = {}
+    context.prev = {}
     
     if context.pipeline:
         generate_universe(context, data)
         
+    cols = ['high','low','close']
     lookback = context.params['daily_lookback']
-    prices = data.history(context.universe, 'close', lookback, '1d')
+    prices = data.history(context.universe, cols, lookback, '1d')
     for asset in context.universe:
-        px = prices[asset]
-        context.regime[asset] = get_hmm_state(px)[-1]
-        R = 1.02 + (lookback-60)*(1.05-1.02)/(200-60)
-        _, _, points = find_imp_points(px, R=R)
-        support = points[points.sign==-1]
-        resistance = points[points.sign==1]
-        context.support[asset] = sorted(support.value.tail(5).tolist())
-        context.resistance[asset] = sorted(resistance.value.tail(5).tolist())
+        px = prices.xs(asset)
+        context.regime[asset] = get_hmm_state(px.close)[-1]
+        high, low, close = px.high[-1], px.low[-1], px.close[-1]
+        context.prev[asset] = (high, low, close)
+        
+def opening_range(context, data):
+    cols = ['high','low','close']
+    lookback = context.params['open']
+    prices = data.history(context.universe, cols, lookback, '1m')
+    prices = prices[prices.index.date == get_datetime.date()]
+    
+    for asset in context.universe:
+        px = prices.xs(asset)
+        high, low, close = px.high.max(), px.low.min(), px.close[-1]
+        context.days[asset] = (high, low, close)
+        
+    context.trading = True
+    context.entry = True
 
 def stop_entry(context, data):
     context.entry = False
@@ -244,7 +266,7 @@ def square_off_all(context, data):
     context.trade = False
 
 def strategy(context, data):
-    if not context.trade:
+    if not context.entry:
         return
     if len(context.universe) == len(context.entered):
         return
@@ -252,13 +274,10 @@ def strategy(context, data):
     if not context.universe:
         return
     
-    cols = 'close'
-    ohlc = data.history(context.universe, cols, context.intraday_lookback, '1m')
-
+    prices = data.current(context.universe,'close')
     for asset in context.universe:
-        px = ohlc[asset]
         if asset not in context.entered:
-            check_entry(context, asset, px)
+            check_entry(context, asset, prices[asset])
         
 def check_entry(context, asset, px):
     if not context.entry or not context.trade:
@@ -287,30 +306,13 @@ def on_exit(context, asset):
     context.exited.add(asset)
 
 def signal_function(context, asset, px):
-    last = px[-1]
-    sig1 = ema(px, context.intraday_lookback)
-    sig2 = ema(px, context.intraday_lookback/2)
-    
-    if len(context.support[asset]) > 1:
-        support = context.support[asset][1]
-    elif len(context.support[asset])== 1:
-        support = context.support[asset][0]
-    else:
-        support = last
-        
-    if len(context.resistance[asset]) > 1:
-        resistance = context.resistance[asset][-2]
-    elif len(context.resistance[asset])== 1:
-        resistance = context.resistance[asset][-1]
-    else:
-        resistance = last
-    
+    days_high, days_low, days_close = context.days[asset]
+    last_high, last_low, last_close = context.prev[asset]   
     regime = context.regime[asset]
-    momentum = 100*(sig2/sig1-1)
     
-    if momentum > 1.005 and regime==2 and last > support:
+    if days_low > last_high and px > days_high and regime == 2:
         return Signal.BUY
-    elif momentum < 0.995 and regime==0 and last < resistance:
+    elif days_high < last_low and px < days_low and regime == 0:
         return Signal.SELL
     else:
         return Signal.NO_SIGNAL
