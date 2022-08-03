@@ -248,7 +248,7 @@ def opening_range(context, data):
     
     for asset in context.universe:
         px = prices.xs(asset)
-        px = px[px.index.date == get_datetime.date()]
+        px = px[px.index.date == get_datetime().date()]
         high, low, close = px.high.max(), px.low.min(), px.close[-1]
         context.days[asset] = (high, low, close)
         
