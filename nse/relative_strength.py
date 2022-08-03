@@ -254,6 +254,7 @@ def opening_range(context, data):
         
     context.trading = True
     context.entry = True
+    print(f'{get_datetime()}:opening range {context.days}')
 
 def stop_entry(context, data):
     context.entry = False
