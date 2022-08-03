@@ -81,11 +81,11 @@ def initialize(context):
             raise ValueError(msg)
         context.pipeline = True
     try:
-        context.params['rsi_period'] = int(context.params['rsi_period'])
-        assert context.params['rsi_period'] <= 120
-        assert context.params['rsi_period'] >= 15
+        context.params['intraday_lookback'] = int(context.params['intraday_lookback'])
+        assert context.params['intraday_lookback'] <= 120
+        assert context.params['intraday_lookback'] >= 15
     except:
-        msg = 'rsi_period must be an integer between 15 and 120 (minutes).'
+        msg = 'intraday_lookback must be an integer between 15 and 120 (minutes).'
         raise ValueError(msg)
     try:
         context.params['daily_lookback'] = int(context.params['daily_lookback'])
