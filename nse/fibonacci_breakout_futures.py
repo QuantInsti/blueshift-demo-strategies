@@ -42,6 +42,7 @@ def initialize(context):
     context.params = {'daily_lookback':20,
                       'nifty':True,
                       'banknifty':True,
+                      'frequency':5,
                       'stoploss':0.005,
                       'takeprofit':None,
                       'short_sma':10,
@@ -68,6 +69,16 @@ def initialize(context):
         msg = 'daily lookback must be integer and greater than 10 and '
         msg += 'less than or equal to 60.'
         raise ValueError(msg)
+        
+    try:
+        assert context.params['frequency'] == int(context.params['frequency'])
+        assert context.params['frequency'] >= 1
+        assert context.params['frequency'] <= 30
+    except:
+        msg = 'frequency must be integer and greater than or equal to '
+        msg += '10 and less than or equal to 30.'
+        raise ValueError(msg)
+    t = context.params['frequency']
         
     try:
         assert context.params['short_sma'] == int(context.params['short_sma'])
@@ -107,7 +118,7 @@ def initialize(context):
     set_slippage(slippage.FixedSlippage(0.00))
     
     schedule_function(strategy, date_rules.every_day(),
-                      time_rules.every_nth_minute())
+                      time_rules.every_nth_minute(t))
     schedule_function(stop_entry, date_rules.every_day(),
                       time_rules.market_close(hours=2))
     schedule_function(square_off_all, date_rules.every_day(),
