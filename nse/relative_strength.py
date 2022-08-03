@@ -310,9 +310,9 @@ def signal_function(context, asset, px):
     last_high, last_low, last_close = context.prev[asset]   
     regime = context.regime[asset]
     
-    if days_low > last_high and px > days_high and regime == 2:
+    if days_low > last_high and px > days_close and regime == 2:
         return Signal.BUY
-    elif days_high < last_low and px < days_low and regime == 0:
+    elif days_high < last_low and px < days_close and regime == 0:
         return Signal.SELL
     else:
         return Signal.NO_SIGNAL
