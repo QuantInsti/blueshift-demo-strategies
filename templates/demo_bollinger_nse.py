@@ -9,10 +9,13 @@
 from blueshift_library.technicals.indicators import bollinger_band, ema
 
 from blueshift.finance import commission, slippage
-from blueshift.api import(    symbol,
+from blueshift.api import(  symbol,
                             order_target_percent,
                             set_commission,
                             set_slippage,
+                            schedule_function,
+                            date_rules,
+                            time_rules,
                        )
 
 def initialize(context):
@@ -33,9 +36,6 @@ def initialize(context):
                       'trade_freq':5,
                       'leverage':2}
 
-    # variable to control trading frequency
-    context.bar_count = 0
-
     # variables to track signals and target portfolio
     context.signals = dict((security,0) for security in context.securities)
     context.target_position = dict((security,0) for security in context.securities)
@@ -43,25 +43,29 @@ def initialize(context):
     # set trading cost and slippage to zero
     set_commission(commission.PerShare(cost=0.0, min_trade_cost=0.0))
     set_slippage(slippage.FixedSlippage(0.00))
-
-
-def handle_data(context, data):
-    """
-        A function to define things to do at every bar
-    """
-    context.bar_count = context.bar_count + 1
-    if context.bar_count < context.params['trade_freq']:
-        return
-
-    # time to trade, call the strategy function
-    context.bar_count = 0
-    run_strategy(context, data)
-
+    
+    freq = int(context.params['trade_freq'])
+    schedule_function(run_strategy, date_rules.every_day(),
+                      time_rules.every_nth_minute(freq))
+    
+    schedule_function(stop_trading, date_rules.every_day(),
+                      time_rules.market_close(minutes=30))
+    
+    context.trade = True
+    
+def before_trading_start(context, data):
+    context.trade = True
+    
+def stop_trading(context, data):
+    context.trade = False
 
 def run_strategy(context, data):
     """
         A function to define core strategy steps
     """
+    if not context.trade:
+        return
+    
     generate_signals(context, data)
     generate_target_position(context, data)
     rebalance(context, data)
