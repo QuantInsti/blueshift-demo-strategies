@@ -316,4 +316,5 @@ def signal_function(context, asset, px):
     elif days_high < last_low and px < days_low and regime == 0:
         return Signal.SELL
     else:
+        print(f'{get_datetime()}:{asset} got {px}')
         return Signal.NO_SIGNAL
