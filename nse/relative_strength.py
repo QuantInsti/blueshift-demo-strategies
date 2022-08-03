@@ -13,7 +13,10 @@
     Risk: High
     Minimum Capital: 300,000
 """
-import numpy as np
+from blueshift_library.pipelines.pipelines import technical_factor
+from blueshift_library.technicals.indicators import volatility
+from blueshift_library.toolbox.statistical import (
+        get_hmm_state, find_imp_points)
 
 from blueshift.api import(  symbol,
                             order_target,
@@ -33,28 +36,21 @@ from blueshift.api import(  symbol,
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
 from blueshift.pipeline.factors import AverageDollarVolume
-from blueshift.pipeline import CustomFactor
-from blueshift.pipeline.data import EquityPricing
-from blueshift_library.technicals.indicators import rsi
+from blueshift_library.technicals.indicators import ema
 
 class Signal:
     BUY = 1
     SELL = -1
     NO_SIGNAL = 0
 
-def rs_factor(window_length):
-    class Move(CustomFactor):
-        inputs = [EquityPricing.close]
-        def compute(self,today,assets,out,close):
-            out[:] = 100*(close[-1]/close[0])
-    return Move(window_length = window_length)
-
 def initialize(context):
     context.strategy_name = 'Fibonacci Breakout Strategy (Stocks)'
     
     # strategy parameters
-    context.params = {'daily_lookback':60,
-                      'rsi_period':60,
+    context.params = {'daily_lookback':200,
+                      'stocks':[],
+                      'intraday_lookback':60,
+                      'frequency':5,
                       'stoploss':0.005,
                       'takeprofit':None,
                       'num_stocks':5,
@@ -63,20 +59,27 @@ def initialize(context):
     
     set_algo_parameters('params') # the attribute of context
     
-    try:
-        context.params['universe'] = int(context.params['universe'])
-        assert context.params['universe'] <= 500
-        assert context.params['universe'] >= 50
-    except:
-        msg = 'universe must be an integer between 50 and 500.'
-        raise ValueError(msg)
-    try:
-        context.params['num_stocks'] = int(context.params['num_stocks'])
-        assert context.params['num_stocks'] <= 20
-        assert context.params['num_stocks'] >= 2
-    except:
-        msg = 'num_stocks must be an integer between 2 and 20.'
-        raise ValueError(msg)
+    context.pipeline = False
+    context.universe = []
+    if context.params['stocks']:
+        stocks = context.params['stocks'].splits(',')
+        context.universe = [symbol(s) for s in stocks]
+    else:
+        try:
+            context.params['universe'] = int(context.params['universe'])
+            assert context.params['universe'] <= 500
+            assert context.params['universe'] >= 50
+        except:
+            msg = 'universe must be an integer between 50 and 500.'
+            raise ValueError(msg)
+        try:
+            context.params['num_stocks'] = int(context.params['num_stocks'])
+            assert context.params['num_stocks'] <= 10
+            assert context.params['num_stocks'] >= 1
+        except:
+            msg = 'num_stocks must be an integer between 1 and 10.'
+            raise ValueError(msg)
+        context.pipeline = True
     try:
         context.params['rsi_period'] = int(context.params['rsi_period'])
         assert context.params['rsi_period'] <= 120
@@ -87,9 +90,9 @@ def initialize(context):
     try:
         context.params['daily_lookback'] = int(context.params['daily_lookback'])
         assert context.params['daily_lookback'] <= 200
-        assert context.params['daily_lookback'] >= 20
+        assert context.params['daily_lookback'] >= 60
     except:
-        msg = 'daily_lookback must be an integer between 20 and 200 (days).'
+        msg = 'daily_lookback must be an integer between 60 and 200 (days).'
         raise ValueError(msg)
         
     if context.params['stoploss']:
@@ -112,10 +115,17 @@ def initialize(context):
     else:
         context.params['takeprofit'] = None
         
-    context.long_universe = []
-    context.short_universe = []
-        
-    n = 2*context.params['num_stocks']
+    try:
+        assert context.params['frequency'] == int(context.params['frequency'])
+        assert context.params['frequency'] >= 1
+        assert context.params['frequency'] <= 30
+    except:
+        msg = 'frequency must be integer and greater than or equal to '
+        msg += '10 and less than or equal to 30.'
+        raise ValueError(msg)
+    t = context.params['frequency']
+    
+    n = len(context.universe) if context.universe else context.params['num_stocks']
     required = n*context.params['order_size']
     capital = context.portfolio.starting_cash
     if capital < required:
@@ -123,7 +133,7 @@ def initialize(context):
         msg += f'please add more capital or reduce number of stocks.'
         raise ValueError(msg)
         
-    context.intraday_lookback = 2*context.params['rsi_period']
+    context.intraday_lookback = context.params['intraday_lookback']
         
     if context.params['stoploss']:
         try:
@@ -146,14 +156,15 @@ def initialize(context):
         context.params['takeprofit'] = None
     
     schedule_function(strategy, date_rules.every_day(),
-                      time_rules.every_nth_minute())
+                      time_rules.every_nth_minute(t))
     schedule_function(stop_entry, date_rules.every_day(),
                       time_rules.market_close(hours=2))
     schedule_function(square_off_all, date_rules.every_day(),
                       time_rules.market_close(minutes=30))
     
-    attach_pipeline(make_strategy_pipeline(context), 
-        name='strategy_pipeline')
+    if context.pipeline:
+        attach_pipeline(make_strategy_pipeline(context), 
+            name='strategy_pipeline')
     
     context.benchmark = symbol('NIFTY')
     msg = f'Starting strategy {context.strategy_name} '
@@ -169,8 +180,8 @@ def make_strategy_pipeline(context):
             window_length=lookback).top(top_n)
     
     # compute atr
-    move = rs_factor(window_length=lookback)
-    pipe.add(move,'move')
+    vol = technical_factor(lookback, volatility, 1)
+    pipe.add(vol,'vol')
     pipe.set_screen(dollar_volume_filter)
     return pipe
 
@@ -178,31 +189,23 @@ def generate_universe(context, data):
     try:
         pipeline_results = pipeline_output('strategy_pipeline')
     except NoFurtherDataError:
-        context.long_universe = []
-        context.short_universe = []
+        context.universe = []
         return
     
     n = context.params['num_stocks']
-    lookback = context.params['daily_lookback']
-    benchmark = data.history(context.benchmark,'close',lookback,'1d')
-    move = 100*(benchmark[-1]/benchmark[0])
-    
     candidates = pipeline_results.dropna()
-    metric = candidates.move/move
-    candidates = metric.sort_values()
-    size = int(len(candidates)/2)
+    candidates = candidates.vol.sort_values()
+    size = int(len(candidates))
     
     if size == 0:
         print(f'{get_datetime()}, no stocks passed filterting criteria.')
-        context.long_universe = []
-        context.short_universe = []
+        context.universe = []
         return
         
     if size < n:
         print(f'{get_datetime()}, only {size} stocks passed filterting criteria.')
     
-    context.long_universe = candidates[-size:].index.tolist()
-    context.short_universe = candidates[:size].index.tolist()
+    context.universe = candidates[-n:].index.tolist()
     
 def before_trading_start(context, data):
     # reset all trackers
@@ -210,9 +213,25 @@ def before_trading_start(context, data):
     context.trade = True
     context.entered = set()
     context.exited = set()
-    context.supports = {}
+    context.regime = {}
+    context.support = {}
+    context.resistance = {}
     context.signal = {}
-    generate_universe(context, data)
+    
+    if context.pipeline:
+        generate_universe(context, data)
+        
+    lookback = context.params['daily_lookback']
+    prices = data.history(context.universe, 'close', lookback, '1d')
+    for asset in context.universe:
+        px = prices[asset]
+        context.regime[asset] = get_hmm_state(px)[-1]
+        R = 1.02 + (lookback-60)*(1.05-1.02)/(200-60)
+        _, _, points = find_imp_points(px, R=R)
+        support = points[points.sign==-1]
+        resistance = points[points.sign==1]
+        context.support[asset] = sorted(support.value.tail(5).tolist())
+        context.resistance[asset] = sorted(resistance.value.tail(5).tolist())
 
 def stop_entry(context, data):
     context.entry = False
@@ -226,6 +245,8 @@ def square_off_all(context, data):
 
 def strategy(context, data):
     if not context.trade:
+        return
+    if len(context.universe) == len(context.entered):
         return
     
     if not context.long_universe and not context.short_universe:
@@ -267,11 +288,30 @@ def on_exit(context, asset):
     context.exited.add(asset)
 
 def signal_function(context, asset, px):
-    sig = rsi(px, context.params['rsi_period'])
+    last = px[-1]
+    sig1 = ema(px, context.intraday_lookback)
+    sig2 = ema(px, context.intraday_lookback/2)
     
-    if sig > 65 and asset in context.long_universe:
+    if len(context.support[asset]) > 1:
+        support = context.support[asset][1]
+    elif len(context.support[asset])== 1:
+        support = context.support[asset][0]
+    else:
+        support = last
+        
+    if len(context.resistance[asset]) > 1:
+        resistance = context.resistance[asset][-2]
+    elif len(context.resistance[asset])== 1:
+        resistance = context.resistance[asset][-1]
+    else:
+        resistance = last
+    
+    regime = context.regime[asset]
+    momentum = 100*(sig2/sig1-1)
+    
+    if momentum > 1.005 and regime==2 and last > support:
         return Signal.BUY
-    elif sig < 35 and asset in context.short_universe:
+    elif momentum < 0.995 and regime==0 and last < resistance:
         return Signal.SELL
     else:
         return Signal.NO_SIGNAL
