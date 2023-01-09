@@ -7,7 +7,7 @@
     Asset class: Equities, Futures, ETFs and Currencies
     Broker: NSE
 """
-from blueshift_library.technicals.indicators import bollinger_band, doji
+from blueshift.library.technicals.indicators import bollinger_band, doji
 
 from blueshift.finance import commission, slippage
 from blueshift.api import(  symbol,

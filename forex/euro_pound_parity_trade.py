@@ -9,15 +9,15 @@
     Dataset: FX Minute
 """
 import numpy as np
-from blueshift_library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
-from blueshift_library.utils.utils import square_off
+from blueshift.library.statistical import z_score, hedge_ratio, cancel_all_open_orders
 
 from blueshift.api import(  symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,
                             time_rules,
-                            set_account_currency
+                            set_account_currency,
+                            square_off
                        )
 
 def initialize(context):
@@ -73,7 +73,7 @@ def stop_trading(context, data):
 def daily_square_off(context, data):
     """ square off all positions at the end of day."""
     context.trading_hours = False
-    square_off(context)
+    square_off()
 
 def pair_trading_strategy(context,data):
     """

@@ -55,6 +55,7 @@ def initialize(context):
     context.lotsize = {}
     if context.params['nifty']:
         context.lotsize[symbol('NIFTY-I')] = 50
+    
     if context.params['banknifty']:
         context.lotsize[symbol('BANKNIFTY-I')] = 25
     if not context.lotsize:
@@ -62,7 +63,7 @@ def initialize(context):
     
     
     try:
-        assert context.params['daily_lookback'] == int(context.params['daily_lookback'])
+        context.params['daily_lookback'] = int(context.params['daily_lookback'])
         assert context.params['daily_lookback'] > 10
         assert context.params['daily_lookback'] <= 60
     except:
@@ -71,7 +72,7 @@ def initialize(context):
         raise ValueError(msg)
         
     try:
-        assert context.params['frequency'] == int(context.params['frequency'])
+        context.params['frequency'] = int(context.params['frequency'])
         assert context.params['frequency'] >= 1
         assert context.params['frequency'] <= 30
     except:
@@ -81,8 +82,8 @@ def initialize(context):
     t = context.params['frequency']
         
     try:
-        assert context.params['short_sma'] == int(context.params['short_sma'])
-        assert context.params['long_sma'] == int(context.params['long_sma'])
+        context.params['short_sma'] = int(context.params['short_sma'])
+        context.params['long_sma'] = int(context.params['long_sma'])
         assert context.params['long_sma'] > context.params['short_sma']
     except:
         msg = 'volume moving average lookbacks must be integers and '
@@ -90,6 +91,11 @@ def initialize(context):
         raise ValueError(msg)
     else:
         context.intraday_lookback = context.params['long_sma']*2
+        
+    try:
+        context.params['lots'] = int(context.params['lots'])
+    except:
+        raise ValueError('lot size must be an integer.')
         
     if context.params['stoploss']:
         try:
@@ -111,6 +117,15 @@ def initialize(context):
     else:
         context.params['takeprofit'] = None
         
+    try:
+        context.params['lots'] = int(context.params['lots'])
+        assert context.params['lots'] >= 1
+        assert context.params['lots'] <= 10
+    except:
+        msg = 'lots must be integer and greater than or equal to '
+        msg += '1 and less than or equal to 10.'
+        raise ValueError(msg)
+        
     context.universe = list(context.lotsize.keys())
 
     # set trading cost and slippage to zero
@@ -125,6 +140,7 @@ def initialize(context):
                       time_rules.market_close(minutes=30))
     
     context.capital_checked = False
+    context.mock = True
     
 def generate_supports(context, data):
     cols = ['close']
@@ -221,7 +237,10 @@ def on_exit(context, asset):
     context.exited.add(asset)
 
 def signal_function(context, asset, px):
-    #last = 0.33*(px.close[-1] + px.high[-1] + px.low[-1])
+    if context.mock:
+        # special case for mock testing
+        return Signal.BUY
+        
     last = px.close[-1]
     t = context.params['short_sma']
     T = context.params['long_sma']

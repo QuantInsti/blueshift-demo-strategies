@@ -6,7 +6,7 @@
     Broker: NSE
 """
 import numpy as np
-from blueshift_library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
+from blueshift.library.statistical import z_score, hedge_ratio, cancel_all_open_orders
 
 
 from blueshift.api import(    symbol,

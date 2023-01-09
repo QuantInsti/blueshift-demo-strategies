@@ -6,8 +6,8 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from blueshift_library.pipelines.pipelines import average_volume_filter, technical_factor
-from blueshift_library.technicals.indicators import volatility
+from blueshift.library.pipelines import average_volume_filter, technical_factor
+from blueshift.library.technicals.indicators import volatility
 from scipy.stats import skew
 
 from blueshift.pipeline import Pipeline

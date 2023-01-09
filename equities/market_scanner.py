@@ -10,8 +10,8 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Broker: NSE/ US Equities
 """
-from blueshift_library.pipelines.pipelines import average_volume_filter, technical_factor
-from blueshift_library.technicals.indicators import rsi, ema
+from blueshift.library.pipelines import average_volume_filter, technical_factor
+from blueshift.library.technicals.indicators import rsi, ema
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError

@@ -6,8 +6,7 @@
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
     Dataset: NYSE Minute
 """
-from blueshift_library.technicals.indicators import volatility
-from blueshift_library.utils.utils import square_off
+from blueshift.library.technicals.indicators import volatility
 
 from blueshift.finance import commission, slippage
 from blueshift.api import(    symbol,
@@ -17,6 +16,7 @@ from blueshift.api import(    symbol,
                             time_rules,
                             set_commission,
                             set_slippage,
+                            square_off
                        )
 
 
@@ -72,7 +72,9 @@ def no_more_entry(context, data):
 def unwind(context, data):
     """ turn trading off. """
     context.state = None
-    square_off(context)
+    positions = context.portfolio.positions
+    for asset in positions:
+        square_off(asset)
     daily_reset(context)
 
 def handle_entry(context,data):

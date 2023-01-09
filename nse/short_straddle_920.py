@@ -6,6 +6,8 @@
     Style tags: Volatility Premium
     Asset class: Equity Options
     Dataset: NSE
+    Risk: High
+    Minimum Capital: 500,000
 """
 from blueshift.api import symbol, order_target, cancel_order
 from blueshift.api import set_stoploss, set_takeprofit
@@ -66,6 +68,8 @@ def initialize(context):
             close_out, date_rules.every_day(), 
             time_rules.market_close(exit_))
     context.capital_checked = False
+    context.traded = False
+    context.mock = True
     
 def before_trading_start(context, data):
     if not context.capital_checked:
@@ -83,12 +87,19 @@ def before_trading_start(context, data):
         context.capital_checked = True
     
     context.entered = set()
+    context.traded = False    
 
 def enter(context, data):
+    if context.traded:
+        return
+    
     close_out(context, data)
     size = context.params['lots']*context.lotsize
     for asset in context.universe:
         order_target(asset,-size)
+    
+    # done for the day
+    context.traded = True
 
 def close_out(context, data):
     for oid in context.open_orders:
@@ -109,4 +120,9 @@ def set_targets(context, data):
         context.entered.add(asset)
     
 def handle_data(context, data):
+    if context.mock:
+        # for live/ paper try to immideately once started
+        context.universe = [symbol('NIFTY-ICE+0'), symbol('NIFTY-IPE+0')]
+        enter(context, data)
+        
     set_targets(context, data)

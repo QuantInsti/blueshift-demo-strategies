@@ -15,10 +15,9 @@
 """
 import numpy as np
 
-from blueshift_library.pipelines.pipelines import technical_factor
-from blueshift_library.technicals.indicators import volatility
-from blueshift_library.toolbox.statistical import (
-        get_hmm_state, find_imp_points)
+from blueshift.library.pipelines import technical_factor
+from blueshift.library.technicals.indicators import volatility
+from blueshift.library.statistical import get_hmm_state, find_imp_points
 
 from blueshift.api import(  symbol,
                             order_target,

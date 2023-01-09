@@ -10,12 +10,14 @@
 """
 import datetime
 
-from blueshift_library.pipelines.pipelines import period_returns
+from blueshift.library.pipelines import period_returns
 from blueshift.pipeline.factors import AverageDollarVolume
+from blueshift.library.pipelines import filter_universe
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
 from blueshift.api import(
+                            symbol,
                             order_target_value,
                             schedule_function,
                             date_rules,
@@ -39,6 +41,8 @@ def next_month(dt):
 
 def initialize(context):
     context.strategy_name = 'Long-only momentum portfolio rebalancer'
+    context.weights = {}
+    context.dynamic = False
     
     # The context variables can be accessed by other methods
     context.params = {'lookback':12,        # lookback for momentum
@@ -48,6 +52,8 @@ def initialize(context):
                       }
     
     set_algo_parameters('params') # the attribute of context
+    print(f'got params {context.params}')
+    
     try:
         context.params['lookback'] = int(context.params['lookback'])
         assert context.params['lookback'] <= 12
@@ -68,9 +74,16 @@ def initialize(context):
         context.params['universe'] = int(context.params['universe'])
         assert context.params['universe'] <= 500
         assert context.params['universe'] >= 50
+        context.dynamic = True
     except:
-        msg = 'universe must be an integer between 50 and 500.'
-        raise ValueError(msg)
+        try:
+            universe = context.params['universe'].split(',')
+            universe = [symbol(s.strip()) for s in universe]
+            context.weights = {asset:1 for asset in universe}
+        except:
+            msg = 'universe must be an integer between 50 and 500 or '
+            msg += 'a list of stocks (comma separated).'
+            raise ValueError(msg)
         
     if not context.params['order_value']:
         capital = context.portfolio.starting_cash
@@ -101,9 +114,14 @@ def initialize(context):
         msg += f'please add more capital and try again.'
         raise ValueError(msg)
         
-    context.weights = {}
     # set long only
     set_long_only()
+    
+    # set weights in case of static universe
+    if context.weights:
+        value = context.params['order_value']
+        for asset in context.weights:
+            context.weights[asset] = value
     
     # Call rebalance function on the first trading day of each month
     schedule_function(strategy, date_rules.month_start(), 
@@ -116,6 +134,14 @@ def initialize(context):
     msg = f'Starting strategy {context.strategy_name} '
     msg += f'with parameters {context.params}'
     print(msg)
+    context.traded = False
+    context.mock = True
+    
+def handle_data(context, data):
+    if context.mock and not context.traded:
+        print(f'Initialting portfolio rebalance once.')
+        strategy(context, data)
+        context.traded = True
 
 def strategy(context, data):
     generate_signals(context, data)
@@ -125,14 +151,19 @@ def make_strategy_pipeline(context):
     pipe = Pipeline()
 
     lookback = context.params['lookback']*21
-    top_n = context.params['universe']
-    dollar_volume_filter = AverageDollarVolume(
-            window_length=lookback).top(top_n)
+    
+    if context.dynamic:
+        top_n = context.params['universe']
+        screener = AverageDollarVolume(
+                window_length=lookback).top(top_n)
+    else:
+        universe = list(context.weights.keys())
+        screener = filter_universe(universe)
     
     # compute past returns
     momentum = period_returns(lookback)
     pipe.add(momentum,'momentum')
-    pipe.set_screen(dollar_volume_filter)
+    pipe.set_screen(screener)
     return pipe
 
 def generate_signals(context, data):
@@ -172,10 +203,14 @@ def rebalance(context,data):
     for security in context.weights:
         order_target_value(security, context.weights[security])
         
+    if context.dynamic:
+        # reset current universe for dynamic selection
+        context.weights = {}
+        
     if context.mode != 'BACKTEST':
         print(context.mode)
         month, year = next_month(get_datetime())
-        msg = 'Rebalancing complete. This strategy is designed for '
+        msg = 'Rebalancing orders sent. This strategy is designed for '
         msg += 'monthly rebalancing, next rebalance date is first '
         msg += f'business day of {month}, {year}'
         print(msg)
