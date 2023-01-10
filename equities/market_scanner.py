@@ -28,7 +28,7 @@ def initialize(context):
                       }
     
     schedule_function(strategy, date_rules.month_start(), 
-            time_rules.market_close(minutes=1))
+            time_rules.market_close(minutes=30))
 
     attach_pipeline(make_strategy_pipeline(context), 
             name='strategy_pipeline')

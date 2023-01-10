@@ -136,7 +136,7 @@ def initialize(context):
 
     # schedule agent weights updates
     schedule_function(update_agent_weights, date_rules.week_start(),
-        time_rules.market_close())
+        time_rules.market_close(minutes=30))
 
 def before_trading_start(context, data):
     update_agent_perfs(context, data)
