@@ -63,7 +63,8 @@ def make_strategy_pipeline(context):
 def generate_signals(context, data):
     try:
         pipeline_results = pipeline_output('strategy_pipeline')
-    except:
+    except Exception as e:
+        print(f'got error {e}')
         context.long_securities = []
         context.short_securities = []
         return
@@ -93,10 +94,10 @@ def rebalance(context,data):
     for security in context.portfolio.positions:
         if security not in context.long_securities and \
            security not in context.short_securities:
-               order_target_percent(security, 0)
+               order_target_percent(security, 0, product_type='margin')
 
     # Place orders for the new portfolio
     for security in context.long_securities:
-        order_target_percent(security, weight)
+        order_target_percent(security, weight, product_type='margin')
     for security in context.short_securities:
-        order_target_percent(security, -weight)
+        order_target_percent(security, -weight, product_type='margin')
