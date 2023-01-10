@@ -64,6 +64,7 @@ def generate_signals(context, data):
     
     # use other columns to print other indicators scanning results
     results = results.sort_values('rsi',ascending=True)
+    results = results.dropna(how='all')
     print('{}{}'.format(get_datetime(),'-'*30))
     print(results.head())
     print(results.tail())
