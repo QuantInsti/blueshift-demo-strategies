@@ -6,7 +6,7 @@
     Broker: NSE
 """
 import numpy as np
-from blueshift_library.utils.utils import z_score, hedge_ratio, cancel_all_open_orders
+from blueshift.library.statistical import z_score, hedge_ratio
 
 
 from blueshift.api import(    symbol,
@@ -14,6 +14,8 @@ from blueshift.api import(    symbol,
                             schedule_function,
                             date_rules,
                             time_rules,
+                            get_open_orders,
+                            cancel_order,
                        )
 
 def initialize(context):
@@ -103,7 +105,8 @@ def place_order(context):
     weight = context.signal*context.leverage/2
 
     # cancel all outstanding orders
-    cancel_all_open_orders(context)
+    for oid in get_open_orders():
+        cancel_order(oid)
     # send fresh orders
     order_target_percent(context.x, -weight*context.hedge_ratio)
     order_target_percent(context.y, weight)

@@ -6,8 +6,8 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: US Equities or NSE
 """
-from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns, technical_factor
-from blueshift_library.technicals.indicators import volatility
+from blueshift.library.pipelines import average_volume_filter, period_returns, technical_factor
+from blueshift.library.technicals.indicators import volatility
 
 from blueshift.pipeline import Pipeline, CustomFilter
 from blueshift.assets import InstrumentType

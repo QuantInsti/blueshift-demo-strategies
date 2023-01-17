@@ -9,15 +9,15 @@
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: FX Minute
 """
-from blueshift_library.technicals.indicators import ema
-from blueshift_library.utils.utils import square_off
+from blueshift.library.technicals.indicators import ema
 
 from blueshift.api import(  symbol,
                             order_target,
                             schedule_function,
                             date_rules,
                             time_rules,
-                            set_account_currency
+                            set_account_currency,
+                            square_off,
                        )
 
 def initialize(context):
@@ -84,7 +84,7 @@ def stop_trading(context, data):
 def daily_square_off(context, data):
     """ square off all positions at the end of day."""
     context.trading_hours = False
-    square_off(context)
+    square_off()
 
 def handle_data(context, data):
     """

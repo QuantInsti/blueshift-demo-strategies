@@ -6,7 +6,7 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
+from blueshift.library.pipelines import average_volume_filter, period_returns
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
@@ -31,7 +31,7 @@ def initialize(context):
     
     # Call rebalance function on the first trading day of each month
     schedule_function(strategy, date_rules.month_start(), 
-            time_rules.market_close(minutes=1))
+            time_rules.market_close(minutes=30))
 
     # Set up the pipe-lines for strategies
     attach_pipeline(make_strategy_pipeline(context), 

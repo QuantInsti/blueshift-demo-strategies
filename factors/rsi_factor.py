@@ -6,8 +6,8 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Dataset: All
 """
-from blueshift_library.pipelines.pipelines import average_volume_filter, technical_factor
-from blueshift_library.technicals.indicators import rsi
+from blueshift.library.pipelines import average_volume_filter, technical_factor
+from blueshift.library.technicals.indicators import rsi
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
@@ -33,7 +33,7 @@ def initialize(context):
     
     # Call rebalance function on the first trading day of each month
     schedule_function(strategy, date_rules.month_start(), 
-            time_rules.market_close(minutes=1))
+            time_rules.market_close(minutes=30))
 
     # Set up the pipe-lines for strategies
     attach_pipeline(make_strategy_pipeline(context), 
@@ -63,7 +63,8 @@ def make_strategy_pipeline(context):
 def generate_signals(context, data):
     try:
         pipeline_results = pipeline_output('strategy_pipeline')
-    except:
+    except Exception as e:
+        print(f'got error {e}')
         context.long_securities = []
         context.short_securities = []
         return
@@ -93,10 +94,10 @@ def rebalance(context,data):
     for security in context.portfolio.positions:
         if security not in context.long_securities and \
            security not in context.short_securities:
-               order_target_percent(security, 0)
+               order_target_percent(security, 0, product_type='margin')
 
     # Place orders for the new portfolio
     for security in context.long_securities:
-        order_target_percent(security, weight)
+        order_target_percent(security, weight, product_type='margin')
     for security in context.short_securities:
-        order_target_percent(security, -weight)
+        order_target_percent(security, -weight, product_type='margin')

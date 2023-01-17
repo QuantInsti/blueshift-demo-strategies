@@ -7,8 +7,7 @@
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
     Dataset: NYSE Minute
 """
-from blueshift_library.technicals.indicators import volatility
-from blueshift_library.utils.utils import square_off
+from blueshift.library.technicals.indicators import volatility
 import numpy as np
 
 
@@ -20,6 +19,7 @@ from blueshift.api import(    symbol,
                             time_rules,
                             set_commission,
                             set_slippage,
+                            square_off,
                        )
 
 
@@ -53,6 +53,7 @@ def calculate_trading_metrics(context, data):
         last = px.iloc[-2]
         px = px[:-1]
         vol = volatility(px.close.values, context.lookback_long)*15.874*last.close/100
+        vol = 100*vol
         
         gap_up = current.low-last.high
         gap_down = last.low-current.high
@@ -78,7 +79,7 @@ def no_more_entry(context, data):
 def unwind(context, data):
     """ turn trading off. """
     context.state = None
-    square_off(context)
+    square_off()
     daily_reset(context)
 
 def handle_entry(context,data):

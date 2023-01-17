@@ -12,7 +12,7 @@
 
 import numpy as np
 
-from blueshift_library.pipelines.pipelines import average_volume_filter, period_returns
+from blueshift.library.pipelines import average_volume_filter, period_returns
 
 from blueshift.pipeline import Pipeline, CustomFactor
 from blueshift.pipeline.data import EquityPricing

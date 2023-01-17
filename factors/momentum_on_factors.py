@@ -8,8 +8,8 @@
     Dataset: US Equities
 """
 
-from blueshift_library.pipelines.pipelines import period_returns, technical_factor
-from blueshift_library.technicals.indicators import volatility
+from blueshift.library.pipelines import period_returns, technical_factor
+from blueshift.library.technicals.indicators import volatility
 
 from blueshift.errors import NoFurtherDataError
 from blueshift.pipeline import Pipeline, CustomFilter

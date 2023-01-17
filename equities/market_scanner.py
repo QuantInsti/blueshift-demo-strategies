@@ -10,8 +10,8 @@
     Asset class: Equities, Futures, ETFs, Currencies
     Broker: NSE/ US Equities
 """
-from blueshift_library.pipelines.pipelines import average_volume_filter, technical_factor
-from blueshift_library.technicals.indicators import rsi, ema
+from blueshift.library.pipelines import average_volume_filter, technical_factor
+from blueshift.library.technicals.indicators import rsi, ema
 
 from blueshift.pipeline import Pipeline
 from blueshift.errors import NoFurtherDataError
@@ -28,7 +28,7 @@ def initialize(context):
                       }
     
     schedule_function(strategy, date_rules.month_start(), 
-            time_rules.market_close(minutes=1))
+            time_rules.market_close(minutes=30))
 
     attach_pipeline(make_strategy_pipeline(context), 
             name='strategy_pipeline')
@@ -64,6 +64,7 @@ def generate_signals(context, data):
     
     # use other columns to print other indicators scanning results
     results = results.sort_values('rsi',ascending=True)
+    results = results.dropna(how='all')
     print('{}{}'.format(get_datetime(),'-'*30))
     print(results.head())
     print(results.tail())

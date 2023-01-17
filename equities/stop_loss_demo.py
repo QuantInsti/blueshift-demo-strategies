@@ -13,7 +13,7 @@
     Broker: NSE
 """
 import numpy as np
-from blueshift_library.technicals.indicators import bollinger_band, ema
+from blueshift.library.technicals.indicators import bollinger_band, ema
 
 from blueshift.finance import commission, slippage
 from blueshift.api import(  symbol,
