@@ -9,7 +9,7 @@
     Risk: High
     Minimum Capital: 500,000
 """
-from blueshift.api import symbol, order_target, cancel_order
+from blueshift.api import symbol, order, cancel_order, square_off
 from blueshift.api import set_stoploss, set_takeprofit, schedule_once
 from blueshift.api import schedule_function, date_rules, time_rules
 
@@ -44,7 +44,7 @@ def enter(context, data):
     close_out(context, data)
     size = context.params['lots']*context.universe[0].mult
     for asset in context.universe:
-        order_target(asset,-size)
+        order(asset,-size)
     
     # done for the day
     context.traded = True
@@ -54,8 +54,7 @@ def close_out(context, data):
     for oid in context.open_orders:
         cancel_order(oid)
         
-    for asset in context.portfolio.positions:
-        order_target(asset, 0)
+    square_off()
             
 def set_targets(context, data):
     # ALWAYS set stoploss and takeprofit targets on positions, 
