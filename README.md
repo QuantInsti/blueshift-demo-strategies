@@ -46,8 +46,8 @@ Introduction
 
 Blueshift is a flexible, platform agnostic, trading and backtesting framework
 for developing systematic investment strategies in Python in a fast and 
-reliable way. This makes developing complex (and simple) strategies easy, 
-and moving a strategy from back-testing to live trading seamless.
+reliable way. This makes developing complex (and simple) strategies easy 
+and moving a strategy from back-testing to live trading seamlessly.
 
 Features
 --------
@@ -66,20 +66,20 @@ Features
 Why Blueshift!
 --------------
 
-There are many Pythonic backtesting framework out there. A few are 
+There are many Pythonic backtesting frameworks out there. A few are 
 excellent for the purpose they were built for. So why another one? The 
 issues we found with existing frameworks are:
 
 * Most are developed for back-testing. Coaxing them in to live trading frameworks is hacky and risky.
-* Many from the above are useful only for a first-cut research, but fall behind when we need realistic simulation
+* Many from the above are useful only for a first-cut research, but fall behind when we need realistic simulation.
 * Many are focussed on specific markets, asset classes or even geographies.
 * Many are suitable only for certain types of strategies (e.g. using a technical indicator to trade).
 
 We developed Blueshift because when we were looking for a framework, we 
-found none that meets our requirements. It is a full-featured complext event 
+found none that meets our requirements. It is a full-featured complex event 
 processing engine developed specifically for simulation and live execution of 
-any types of trading strategies. Whatever you can imagine, you can model on 
-Blueshift, only practical limitations being server resource and data.
+any type of trading strategies. Whatever you can imagine, you can model on 
+Blueshift - with only practical limitations being server resources and data.
 
 Shoutout! (via <a href='https://reporoster.com/' target=_blank>reporoster</a>):
 -------------------------------------------------------------------------------
