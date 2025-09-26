@@ -2,11 +2,11 @@
     Title: Buy and Hold (NSE)
     Description: This is a long only strategy which rebalances the 
         portfolio weights every month at month start.
-    Style tags: Systematic
+    Style tags: Systematic, Buy and Hold
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
     Dataset: NSE
 """
-from blueshift.api import(    symbol,
+from blueshift.api import(  symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,
@@ -20,10 +20,10 @@ def initialize(context):
     
     # universe selection
     context.long_portfolio = [
-                               symbol('DIVISLAB'),
+                               symbol('HINDUNILVR'),
                                symbol('SUNPHARMA'),
                                symbol('MARUTI'),
-                               symbol('AMARAJABAT'),
+                               symbol('WIPRO'),
                                symbol('BPCL'),                               
                                symbol('BAJFINANCE'),
                                symbol('HDFCBANK'),

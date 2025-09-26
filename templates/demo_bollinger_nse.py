@@ -2,7 +2,7 @@
     Title: Bollinger Band Strategy (NSE)
     Description: This is a long short strategy based on bollinger bands
         and SMA dual signals
-    Style tags: Systematic Fundamental
+    Style tags: Systematic, Technical
     Asset class: Equities, Futures, ETFs and Currencies
     Dataset: NSE
 """

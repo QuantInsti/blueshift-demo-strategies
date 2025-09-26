@@ -9,63 +9,43 @@
     Risk: High
     Minimum Capital: 500,000
 """
-from blueshift.api import symbol, order, cancel_order, square_off
-from blueshift.api import set_stoploss, set_takeprofit, schedule_once
+from blueshift.api import symbol, order, square_off
+from blueshift.api import set_stoploss, set_takeprofit, get_datetime
 from blueshift.api import schedule_function, date_rules, time_rules
 
 def initialize(context):
-    context.strategy_name = 'NIFTY Weeklies Short Straddle'
     context.params = {
             'lots':1,
             'stoploss':0.4,
             'takeprofit':0.4,
+            'start':'09:20',
+            'end':'15:00',
             }
     
-    context.universe = [symbol('NIFTY-W0CE+0'),symbol('NIFTY-W0PE-0')]
-    
-    schedule_function(
-            enter, date_rules.every_day(), 
-            time_rules.market_open(5))
-    schedule_function(
-            close_out, date_rules.every_day(), 
-            time_rules.market_close(30))
-    
-    context.traded = False
-    context.margin = 0.15
-    
-def before_trading_start(context, data):
-    context.entered = set()
-    context.traded = False    
+    start = context.params['start']
+    end = context.params['end']
+    schedule_function(enter, date_rules.every_day(), time_rules.at(start))
+    schedule_function(close_out, date_rules.every_day(), time_rules.at(end))
 
 def enter(context, data):
-    if context.traded:
-        return
+    dt = get_datetime()
+    opts = [symbol('NIFTY-W0CE+0', dt=dt),symbol('NIFTY-W0PE-0', dt=dt)]
+    lots = int(context.params['lots'])
     
-    close_out(context, data)
-    size = context.params['lots']*context.universe[0].mult
-    for asset in context.universe:
-        order(asset,-size)
-    
-    # done for the day
-    context.traded = True
-    schedule_once(set_targets)
+    for asset in opts:
+        qty = lots*asset.mult
+        oid = order(asset,-qty)
+        if not oid:
+            handle_order_failure(context, asset)
+        else:
+            sl = float(context.params['stoploss'])
+            tp = float(context.params['takeprofit'])
+            set_stoploss(asset, method='percent', target=sl)
+            set_takeprofit(asset, method='percent', target=tp)
 
 def close_out(context, data):
-    for oid in context.open_orders:
-        cancel_order(oid)
-        
     square_off()
-            
-def set_targets(context, data):
-    # ALWAYS set stoploss and takeprofit targets on positions, 
-    # not on order assets. See API documentation for more.
-    for asset in context.portfolio.positions:
-        if asset in context.entered:
-            continue
-        set_stoploss(asset, 'PERCENT', context.params['stoploss'])
-        set_takeprofit(asset, 'PERCENT', context.params['takeprofit'])
-        context.entered.add(asset)
-        
-    if len(context.universe) != len(context.entered):
-        # one or more positions not traded yet, try again alter
-        schedule_once(set_targets)
+
+def handle_order_failure(context, asset):
+    pass
+

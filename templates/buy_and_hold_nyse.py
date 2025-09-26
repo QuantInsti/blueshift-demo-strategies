@@ -1,12 +1,12 @@
 """
-    Title: Buy and Hold (NYSE)
+    Title: Buy and Hold (US equities)
     Description: This is a long only strategy which rebalances the 
         portfolio weights every month at month start.
-    Style tags: Systematic
+    Style tags: Systematic, Buy and Hold
     Asset class: Equities, Futures, ETFs, Currencies and Commodities
     Dataset: US Equities
 """
-from blueshift.api import(    symbol,
+from blueshift.api import(  symbol,
                             order_target_percent,
                             schedule_function,
                             date_rules,
